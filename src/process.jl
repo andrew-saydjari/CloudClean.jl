@@ -1,3 +1,4 @@
+using ProgressMeter
 
 export proc_continuous
 export proc_discrete
