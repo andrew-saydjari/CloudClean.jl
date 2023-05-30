@@ -1,3 +1,4 @@
+using Random
 
 export prelim_infill!
 export kstar_circle_mask
