@@ -1,5 +1,5 @@
 module CloudClean
 
-# Write your package code here.
+    include("cov.jl")
 
 end
