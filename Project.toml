@@ -1,0 +1,19 @@
+name = "CloudClean"
+uuid = "fe36dd89-bde2-4e71-a372-eae745b047b6"
+authors = ["andrew-saydjari"]
+version = "1.0.0-DEV"
+
+[deps]
+ImageFiltering = "6a3955dd-da59-5b1f-98d4-e7296123deb5"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
+ShiftedArrays = "1277b4bf-5013-50f5-be3d-901d8477a67a"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
