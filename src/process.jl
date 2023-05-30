@@ -1,4 +1,5 @@
 using ProgressMeter
+using StasBase
 
 export proc_continuous
 export proc_discrete
