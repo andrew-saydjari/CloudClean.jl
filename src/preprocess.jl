@@ -104,7 +104,7 @@ function im_subrng(jx,jy,cx,cy,sx,sy,px0,py0,stepx,stepy,padx,pady,tilex,tiley)
 end
 
 """
-    prelim_infill!(testim,bmaskim,bimage,bimageI,testim2,bmaskim2,goodpix,ccd;widx=19,widy=19,ftype::Int=32,widmult=1.4)
+    prelim_infill!(testim,bmaskim,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype::Int=32,widmult=1.4)
 
     This intial infill replaces masked pixels with a guess based on a smoothed
     boxcar. For large masked regions, the smoothing scale is increased. If this
@@ -126,7 +126,6 @@ end
     - `testim2`: inplace modified ouptut array for infilled version of image input
     - `bmaskim2`: inplace modified mask to keep track of which pixels still need infilling
     - `goodpix`: preallocated array for Bool indexing pixels with good infill
-    - `ccd`: string name of FITS extension for verbose cmdline printing
 
     # Keywords:
     - `widx`: initial size of boxcar smoothing window in x (default 19)
@@ -134,7 +133,7 @@ end
     - `ftype::Int`: determine the Float precision, 32 is Float32, otherwise Float64
     - `widmult`: multiplicative factor for increasing the smoothing scale at each iteration step
 """
-function prelim_infill!(testim,bmaskim,bimage,bimageI,testim2,bmaskim2,goodpix,ccd;widx=19,widy=19,ftype::Int=32,widmult=1.4)
+function prelim_infill!(testim,bmaskim,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype::Int=32,widmult=1.4)
     if ftype == 32
         T = Float32
     else
@@ -184,7 +183,7 @@ function prelim_infill!(testim,bmaskim,bimage,bimageI,testim2,bmaskim2,goodpix,c
         Δx = (widx-1)÷2
         Δy = (widy-1)÷2
     end
-    println("Infilling $ccd completed after $cnt rounds with final width (widx,widy) = ($widx,$widy)")
+    println("Infilling completed after $cnt rounds with final width (widx,widy) = ($widx,$widy)")
     flush(stdout)
 
     #catastrophic failure fallback

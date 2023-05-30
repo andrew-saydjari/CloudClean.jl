@@ -4,8 +4,7 @@ using StatsBase
 export proc_continuous
 export proc_discrete
 
-function proc_continuous(raw_image,mask_image;gain=4,rndseed=2022,thr=20,Np=33,corrects7=true,widx=129,widy=widx,tilex=1,tiley=tilex,seed=2021,ftype::Int=32,rlim=625,ndraw=0)
-    ccd = "WISE"
+function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,tiley=tilex,seed=2021,ftype::Int=32,ndraw=0)
     radNp = (Np-1)÷2
     if ftype == 32
         T = Float32
@@ -13,7 +12,7 @@ function proc_continuous(raw_image,mask_image;gain=4,rndseed=2022,thr=20,Np=33,c
         T = Float64
     end
 
-    # loads from disk
+    # renaming to match conventions
     ref_im = raw_image
     bmaskd = mask_image
     (sx0, sy0) = size(ref_im)
@@ -33,7 +32,7 @@ function proc_continuous(raw_image,mask_image;gain=4,rndseed=2022,thr=20,Np=33,c
     bmaskim2 = zeros(Bool,sx0,sy0)
     goodpix = zeros(Bool,sx0,sy0)
 
-    prelim_infill!(testim,bmaskd,bimage,bimageI,testim2,bmaskim2,goodpix,ccd;widx=19,widy=19,ftype=ftype)
+    prelim_infill!(testim,bmaskd,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype=ftype)
     testim .= mod_im .- ref_im #fixes current overwrite for 0 infilling
 
     ## calculate the star farthest outside the edge of the image in x and y
@@ -60,7 +59,7 @@ function proc_continuous(raw_image,mask_image;gain=4,rndseed=2022,thr=20,Np=33,c
     diffim = view(ref_im,1:sx0-1,:).-view(ref_im,2:sx0,:)
     in_sigiqr = sig_iqr(filter(.!isnan,diffim))
     
-    add_sky_noise!(in_image,in_bmaskd,in_sigiqr;seed=rndseed)
+    add_sky_noise!(in_image,in_bmaskd,in_sigiqr;seed=seed)
 
     ## iterate over all star positions and compute errorbars/debiasing corrections
     star_stats = zeros(T,10,Nstars)
@@ -69,22 +68,17 @@ function proc_continuous(raw_image,mask_image;gain=4,rndseed=2022,thr=20,Np=33,c
     cov = zeros(T,Np*Np,Np*Np)
     μ = zeros(T,Np*Np)
 
-    # compute a radial mask for reduced num cond pixels
-    # I might not want a circ mask in this case?
-    circmask = kstar_circle_mask(Np,rlim=rlim)
-
     # some important global sizes for the loop
     cntStar0 = 0
     stepx = (sx0+2) ÷ tilex
     stepy = (sy0+2) ÷ tiley
 
     # precallocate the image subblocks
-    #GC.gc(false)
     in_subimage = zeros(T,stepx+2*padx,stepy+2*pady)
     ism = zeros(T,stepx+2*padx,stepy+2*pady)
     bimage = zeros(T,stepx+2*padx-2*Δx,stepy+2*pady-2*Δy)
     bism = zeros(T,stepx+2*padx-2*Δx,stepy+2*pady-2*Δy,2*Np-1, Np);
-    @showprogress for jx=1:tilex, jy=1:tiley
+    for jx=1:tilex, jy=1:tiley
         xrng, yrng, star_ind = im_subrng(jx,jy,cx,cy,sx0+2,sy0+2,px0,py0,stepx,stepy,padx,pady,tilex,tiley)
         cntStar = length(star_ind)
         cntStarIter = 0
@@ -101,10 +95,10 @@ function proc_continuous(raw_image,mask_image;gain=4,rndseed=2022,thr=20,Np=33,c
                     cov_stamp = cx[i]-radNp:cx[i]+radNp,cy[i]-radNp:cy[i]+radNp
                     
                     kmasked2d = in_bmaskd[cov_stamp[1],cov_stamp[2]]
-                    kstar, kcond = gen_pix_mask_AKS(kmasked2d,circmask;Np=Np,thr=thr)
+                    kstar, kcond = gen_pix_mask_trivial(kmasked2d;Np=Np)
                     try
                         data_in = in_image_raw[cov_stamp[1],cov_stamp[2]]
-                        stat_out = condCovEst_wdiag_AKS(cov,μ,kstar,data_in,Np=Np,export_mean=true,n_draw=ndraw,seed=seed)
+                        stat_out = condCovEst_wdiag_continuous(cov,μ,kstar,data_in,Np=Np,export_mean=true,n_draw=ndraw,seed=seed)
                         cov_stamp = cx[i]-radNp:cx[i]+radNp,cy[i]-radNp:cy[i]+radNp
                         
                         data_in[kstar].=stat_out[1][kstar]

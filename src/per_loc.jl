@@ -5,9 +5,8 @@ export condCovEst_wdiag
 export condCovEst_wdiag_full
 export gen_pix_mask_AKS
 
-function gen_pix_mask_AKS(kmasked2d,circmask;Np=33,thr=20)
-    kstar = kmasked2d #.| circmask)
-    
+function gen_pix_mask_trivial(kmasked2d;Np=33)
+    kstar = kmasked2d
     kcond = Np^2-count(kstar)
 
     return kstar[:], kcond
