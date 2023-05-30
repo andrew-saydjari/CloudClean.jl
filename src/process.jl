@@ -51,7 +51,11 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
     in_bmaskd = ImageFiltering.padarray(bmaskd,ImageFiltering.Fill(true,(padx+2,pady+2)));
     out_mean = ImageFiltering.padarray(testim,ImageFiltering.Pad(:reflect,(padx+2,pady+2)));
     out_mean[in_bmaskd].=NaN
-    out_draw = ImageFiltering.padarray(repeat(testim,outer=[1 1 ndraw]),ImageFiltering.Pad(:reflect,(padx+2,pady+2,0)));
+    out_draw = if ndraw!=1
+        ImageFiltering.padarray(repeat(testim,outer=[1 1 ndraw]),ImageFiltering.Pad(:reflect,(padx+2,pady+2,0)));
+    else
+        ImageFiltering.padarray(repeat(testim,outer=[1 1]),ImageFiltering.Pad(:reflect,(padx+2,pady+2)));
+    end
     for i=1:ndraw
         out_draw[in_bmaskd,i].=NaN
     end
