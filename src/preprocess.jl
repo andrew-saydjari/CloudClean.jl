@@ -54,16 +54,18 @@ end
 
     Add sky noise to pixels in an image specified by a given mask.
 
-    # Arguments
+    # Arguments:
     - `testim2`: A mutable 2D array representing the image.
     - `maskim`: A 2D array representing the mask.
     - `sig_iqr`: The standard deviation of the noise distribution, generally calculated as the normalized IQR.
+
+    # Keywords:
     - `seed`: An optional integer specifying the random number generator seed (default: 2021).
 
-    # Returns
+    # Returns:
     - Modifies `testim2` in place by adding sky noise to the masked pixels.
 
-    # Examples
+    # Examples:
     ```julia
     julia> testim2 = rand(100, 100)
     julia> maskim = rand(Bool, 100, 100)

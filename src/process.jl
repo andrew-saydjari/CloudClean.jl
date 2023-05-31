@@ -3,6 +3,36 @@ using StatsBase
 export proc_continuous
 export proc_discrete
 
+"""
+        proc_continuous(raw_image, mask_image; Np=33, widx=129, widy=widx, tilex=1, tiley=tilex, seed=2021, ftype::Int=32, ndraw=0) -> out_mean, out_draw
+
+    Process an image with a mask, replacing masked pixels with either a mean or draw from a distribution resembling the local pixel-pixel covariance structure in the image.
+
+    # Arguments:
+    - `raw_image`: A 2D array representing the input image.
+    - `mask_image`: A 2D array representing the mask.
+
+    # Keywords:
+    - `Np`: An optional integer specifying the number of pixels in a side (default: 33).
+    - `widx`: An optional integer specifying the width of the region used for training the local covariance in the x-direction (default: 129).
+    - `widy`: An optional integer specifying the width of the region used for training the local covariance in the y-direction (default: widx).
+    - `tilex`: An optional integer specifying the number of tiles in the x-direction for subdividing the image (default: 1).
+    - `tiley`: An optional integer specifying the number of tiles in the y-direction for subdividing the image (default: tilex).
+    - `seed`: An optional integer specifying the random number generator seed (default: 2021).
+    - `ftype`: An optional integer specifying the floating-point precision type (32 or 64) (default: 32).
+    - `ndraw`: An optional integer specifying the number of draws of samples from the statistical distribution of possible masked pixel values (default: 0).
+
+    # Returns
+    - If `ndraw` is 0, returns the debiased image as a 2D array.
+    - If `ndraw` is greater than 0, returns the debiased image as a 2D array and an array of `ndraw` draws.
+
+    # Examples
+    ```julia
+    julia> raw_image = rand(100, 100)
+    julia> mask_image = rand(Bool, 100, 100)
+    julia> result = proc_continuous(raw_image, mask_image, Np=33, widx=129, seed=2021)
+    ```
+"""
 function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,tiley=tilex,seed=2021,ftype::Int=32,ndraw=0)
     radNp = (Np-1)÷2
     if ftype == 32
@@ -134,6 +164,39 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
     end
 end
 
+"""
+    proc_discrete(x_locs, y_locs, raw_image, mask_image; Np=33, widx=129, widy=widx, tilex=1, tiley=tilex, seed=2021, ftype::Int=32, ndraw=0) -> out_mean, out_draw
+
+        Process an image with a mask, replacing masked pixels with either a mean or draw from a distribution resembling the local pixel-pixel covariance structure in the image.
+
+        # Arguments:
+        - `x_locs`: A 1D array representing the location centers (in the x coordinate) for infilling.
+        - `y_locs`: A 1D array representing the location centers (in the y coordinate) for infilling.
+        - `raw_image`: A 2D array representing the input image.
+        - `mask_image`: A 2D array representing the mask.
+
+        # Keywords:
+        - `Np`: An optional integer specifying the number of pixels in a side (default: 33).
+        - `widx`: An optional integer specifying the width of the region used for training the local covariance in the x-direction (default: 129).
+        - `widy`: An optional integer specifying the width of the region used for training the local covariance in the y-direction (default: widx).
+        - `tilex`: An optional integer specifying the number of tiles in the x-direction for subdividing the image (default: 1).
+        - `tiley`: An optional integer specifying the number of tiles in the y-direction for subdividing the image (default: tilex).
+        - `seed`: An optional integer specifying the random number generator seed (default: 2021).
+        - `ftype`: An optional integer specifying the floating-point precision type (32 or 64) (default: 32).
+        - `rlim`: Radius limit for the radial mask beyond which pixels are not used for conditioning (units are pixels^2). (default: 625)
+        - `ndraw`: An optional integer specifying the number of draws of samples from the statistical distribution of possible masked pixel values (default: 0).
+
+        # Returns
+        - If `ndraw` is 0, returns the debiased image as a 2D array.
+        - If `ndraw` is greater than 0, returns the debiased image as a 2D array and an array of `ndraw` draws.
+
+        # Examples
+        ```julia
+        julia> raw_image = rand(100, 100)
+        julia> mask_image = kstar_circle_mask(100,rlim=256)
+        julia> result = proc_continuous([50],[50],raw_image, mask_image, Np=33, widx=129, seed=2021)
+        ```
+"""
 function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,tiley=tilex,seed=2021,ftype::Int=32,rlim=625,ndraw=0)
     radNp = (Np-1)÷2
     if ftype == 32
