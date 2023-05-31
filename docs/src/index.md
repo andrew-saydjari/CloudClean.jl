@@ -1,7 +1,7 @@
 # CloudClean.jl
 
 [![GitHub](https://img.shields.io/badge/Code-GitHub-black.svg)](https://github.com/andrew-saydjari/CloudClean.jl)
-[![Build Status](https://github.com/andrew-saydjari/CloudClean.jl/workflows/Unit%20test/badge.svg)](https://github.com/andrew-saydjari/CloudClean.jl/actions)
+[![Build Status](https://github.com/andrew-saydjari/CloudClean.jl/workflows/CI_lite/badge.svg)](https://github.com/andrew-saydjari/CloudClean.jl/actions)
 [![Coverage Status](https://codecov.io/github/andrew-saydjari/CloudClean.jl/coverage.svg?branch=main)](https://codecov.io/github/andrew-saydjari/CloudClean.jl?branch=main)
 
 Image infilling algorithm with focus on statistically accuracy
