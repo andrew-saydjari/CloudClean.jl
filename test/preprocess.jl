@@ -64,7 +64,7 @@ using StatsBase
     
         # Test case with an empty array
         x_empty = []
-        @test_throws DomainError sig_iqr(x_empty)
+        @test_throws ArgumentError sig_iqr(x_empty)
     end
     test_sig_iqr()
 
@@ -83,7 +83,7 @@ using StatsBase
         testim2_empty = []
         maskim_empty = []
         sig_iqr_empty = 0.1
-        @test_throws DomainError add_sky_noise!(testim2_empty, maskim_empty, sig_iqr_empty)
+        @test_throws ArgumentError add_sky_noise!(testim2_empty, maskim_empty, sig_iqr_empty)
     end
     test_add_sky_noise()
 
