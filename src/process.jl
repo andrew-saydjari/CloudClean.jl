@@ -1,4 +1,3 @@
-using ProgressMeter
 using StatsBase
 
 export proc_continuous
