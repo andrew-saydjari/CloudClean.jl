@@ -6,19 +6,21 @@ export gen_pix_mask_trivial #
 export gen_pix_mask_circ #
 
 """
-        gen_pix_mask_trivial(kmasked2d; Np=33)
+        gen_pix_mask_trivial(kmasked2d; Np=33) -> kstar, kcond
 
     Flatten a pixel mask and calculate the number of pixels used for the conditional infill.
 
-    # Arguments
+    # Arguments:
     - `kmasked2d`: A 2D array representing the masked pixels.
+
+    # Keywords:
     - `Np`: An optional integer specifying the number of pixels in a side (default: 33).
 
-    # Returns
+    # Returns:
     - `kstar`: A flattened version of the input `kmasked2d` array.
     - `kcond`: The count of unmasked pixels in the `kstar` array.
 
-    # Examples
+    # Examples:
     ```julia
     julia> kmasked2d = rand(Bool, 33, 33)
     julia> kstar, kcond = gen_pix_mask_trivial(kmasked2d, Np=33)
@@ -32,20 +34,23 @@ function gen_pix_mask_trivial(kmasked2d;Np=33)
 end
 
 """
-        gen_pix_mask_circ(kmasked2d, circmask; Np=33)
-
+        gen_pix_mask_circ(kmasked2d, circmask; Np=33) -> kstar, kcond
+    
+    <!-- -->
     Generate a circular pixel mask and calculate the number of pixels used for the conditional infill.
 
-    # Arguments
+    # Arguments:
     - `kmasked2d`: A 2D array representing the masked pixels.
     - `circmask`: A 2D array representing the circular mask.
+
+    # Keywords:
     - `Np`: An optional integer specifying the number of pixels in a side (default: 33).
 
-    # Returns
+    # Returns:
     - `kstar`: A copy of the input `kmasked2d` array with circular masking applied.
     - `kcond`: The count of unmasked pixels in the `kstar` array.
 
-    # Examples
+    # Examples:
     ```julia
     julia> kmasked2d = rand(Bool, 33, 33)
     julia> circmask = kstar_circle_mask(33,rlim=256)
