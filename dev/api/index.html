@@ -15,7 +15,7 @@ estimate the local covariance matrix at a large number of locations. The main ou
 - `Np::Int`: size of local covariance matrix in pixels (default 33)
 - `widx::Int`: width of boxcar window in x which determines size of region used for samples for the local covariance estimate (default 129)
 - `widy::Int`: width of boxcar window in y which determines size of region used for samples for the local covariance estimate (default 129)
-- `ftype::Int`: determine the Float precision, 32 is Float32, otherwise Float64</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/1ea1c00418bb02de290da723a85bcdd7979dcaa2/src/cov.jl#L79-L97">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.boxsmooth!" href="#CloudClean.boxsmooth!"><code>CloudClean.boxsmooth!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">boxsmooth!(out::AbstractArray, arr::AbstractArray, tot::Array{T,1}, widx::Int, widy::Int)
+- `ftype::Int`: determine the Float precision, 32 is Float32, otherwise Float64</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/777ffc1a0ec08389e500d1ce9e57d8e479d42788/src/cov.jl#L79-L97">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.boxsmooth!" href="#CloudClean.boxsmooth!"><code>CloudClean.boxsmooth!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">boxsmooth!(out::AbstractArray, arr::AbstractArray, tot::Array{T,1}, widx::Int, widy::Int)
 
 Boxcar smooths an input image (or paddedview) `arr` with window size `widx` by
 `widy`. We pass the original image size `sx` and `sy` to help handle image views.
@@ -25,7 +25,7 @@ Boxcar smooths an input image (or paddedview) `arr` with window size `widx` by
 - `arr::AbstractArray`: input array for which boxcar smoothing is computed (generally paddedview)
 - `tot::Array{T,1}`: preallocated array to hold moving sums along 1 dimension
 - `widx::Int`: size of boxcar smoothing window in x
-- `widy::Int`: size of boxcar smoothing window in y</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/1ea1c00418bb02de290da723a85bcdd7979dcaa2/src/cov.jl#L36-L48">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.outest_bounds" href="#CloudClean.outest_bounds"><code>CloudClean.outest_bounds</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">outest_bounds(cx,sx) -&gt; px0
+- `widy::Int`: size of boxcar smoothing window in y</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/777ffc1a0ec08389e500d1ce9e57d8e479d42788/src/cov.jl#L36-L48">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.outest_bounds" href="#CloudClean.outest_bounds"><code>CloudClean.outest_bounds</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">outest_bounds(cx,sx) -&gt; px0
 
 Helper function to find maximum padding in pixels required to accomodate all query points `cx` outside of the image size 1:`sx`.
 
@@ -34,7 +34,41 @@ Helper function to find maximum padding in pixels required to accomodate all que
 - `sx`: image dimension along the axis indexed by `cx`
 
 # Outputs:
-- `px0`: maximum padding in pixels required to accomodate all query points</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/1ea1c00418bb02de290da723a85bcdd7979dcaa2/src/cov.jl#L10-L21">source</a></section></article><h2 id="Per-Location-Functions"><a class="docs-heading-anchor" href="#Per-Location-Functions">Per Location Functions</a><a id="Per-Location-Functions-1"></a><a class="docs-heading-anchor-permalink" href="#Per-Location-Functions" title="Permalink"></a></h2><div class="admonition is-warning"><header class="admonition-header">Missing docstring.</header><div class="admonition-body"><p>Missing docstring for <code>gen_pix_mask_trivial</code>. Check Documenter&#39;s build log for details.</p></div></div><div class="admonition is-warning"><header class="admonition-header">Missing docstring.</header><div class="admonition-body"><p>Missing docstring for <code>gen_pix_mask_circ</code>. Check Documenter&#39;s build log for details.</p></div></div><article class="docstring"><header><a class="docstring-binding" id="CloudClean.condCovEst_wdiag" href="#CloudClean.condCovEst_wdiag"><code>CloudClean.condCovEst_wdiag</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">condCovEst_wdiag(cov_loc,μ,km,data_in;Np=33,export_mean=false,n_draw=0) -&gt; out
+- `px0`: maximum padding in pixels required to accomodate all query points</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/777ffc1a0ec08389e500d1ce9e57d8e479d42788/src/cov.jl#L10-L21">source</a></section></article><h2 id="Per-Location-Functions"><a class="docs-heading-anchor" href="#Per-Location-Functions">Per Location Functions</a><a id="Per-Location-Functions-1"></a><a class="docs-heading-anchor-permalink" href="#Per-Location-Functions" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="CloudClean.gen_pix_mask_trivial" href="#CloudClean.gen_pix_mask_trivial"><code>CloudClean.gen_pix_mask_trivial</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">    gen_pix_mask_trivial(kmasked2d; Np=33)
+
+Flatten a pixel mask and calculate the number of pixels used for the conditional infill.
+
+# Arguments
+- `kmasked2d`: A 2D array representing the masked pixels.
+- `Np`: An optional integer specifying the number of pixels in a side (default: 33).
+
+# Returns
+- `kstar`: A flattened version of the input `kmasked2d` array.
+- `kcond`: The count of unmasked pixels in the `kstar` array.
+
+# Examples
+```julia
+julia&gt; kmasked2d = rand(Bool, 33, 33)
+julia&gt; kstar, kcond = gen_pix_mask_trivial(kmasked2d, Np=33)
+```</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/777ffc1a0ec08389e500d1ce9e57d8e479d42788/src/per_loc.jl#L8-L26">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.gen_pix_mask_circ" href="#CloudClean.gen_pix_mask_circ"><code>CloudClean.gen_pix_mask_circ</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">    gen_pix_mask_circ(kmasked2d, circmask; Np=33)
+
+Generate a circular pixel mask and calculate the number of pixels used for the conditional infill.
+
+# Arguments
+- `kmasked2d`: A 2D array representing the masked pixels.
+- `circmask`: A 2D array representing the circular mask.
+- `Np`: An optional integer specifying the number of pixels in a side (default: 33).
+
+# Returns
+- `kstar`: A copy of the input `kmasked2d` array with circular masking applied.
+- `kcond`: The count of unmasked pixels in the `kstar` array.
+
+# Examples
+```julia
+julia&gt; kmasked2d = rand(Bool, 33, 33)
+julia&gt; circmask = kstar_circle_mask(33,rlim=256)
+julia&gt; kstar, kcond = gen_pix_mask_circ(kmasked2d, circmask, Np=33)
+```</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/777ffc1a0ec08389e500d1ce9e57d8e479d42788/src/per_loc.jl#L34-L54">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.condCovEst_wdiag" href="#CloudClean.condCovEst_wdiag"><code>CloudClean.condCovEst_wdiag</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">    condCovEst_wdiag(cov_loc,μ,km,data_in;Np=33,export_mean=false,n_draw=0) -&gt; out
 
 Using a local covariance matrix estimate `cov_loc` and a set of known (&quot;good&quot;) pixels `km`, this function computes a prediction for the mean value of masked pixels and the covariance matrix of the masked pixels. The output list can conditionally include the mean reconstruction and draws from the distribution of reconstructions.
 
@@ -51,7 +85,7 @@ Using a local covariance matrix estimate `cov_loc` and a set of known (&quot;goo
 
 # Outputs:
 - `out[1]`: input image returned with masked pixels replaced with mean prediction
-- `out[2]`: input image returned with masked pixels replaced with a draw from the predicted distribution</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/1ea1c00418bb02de290da723a85bcdd7979dcaa2/src/per_loc.jl#L22-L41">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.build_cov!" href="#CloudClean.build_cov!"><code>CloudClean.build_cov!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">build_cov!(cov::Array{T,2},μ::Array{T,1},cx::Int,cy::Int,bimage::Array{T,2},bism::Array{T,4},Np::Int,widx::Int,widy::Int) where T &lt;:Union{Float32,Float64}
+- `out[2]`: input image returned with masked pixels replaced with a draw from the predicted distribution</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/777ffc1a0ec08389e500d1ce9e57d8e479d42788/src/per_loc.jl#L62-L81">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.build_cov!" href="#CloudClean.build_cov!"><code>CloudClean.build_cov!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">    build_cov!(cov::Array{T,2},μ::Array{T,1},cx::Int,cy::Int,bimage::Array{T,2},bism::Array{T,4},Np::Int,widx::Int,widy::Int) where T &lt;:Union{Float32,Float64}
 
 Constructs the local covariance matrix and mean for an image patch of size `Np` x `Np` pixels around a location
 of interest (`cx`,`cy`). The construction is just a lookup of pixel values from the stored boxcar-smoothed copies
@@ -69,7 +103,7 @@ every detection. Math may either be performed `Float32` or `Float64`.
 - `bism::Array{T,4}`: boxcar-smoothed image products for all shifts
 - `Np::Int`: size of local covariance matrix in pixels
 - `widx::Int`: width of boxcar window in x which determines size of region used for samples for the local covariance estimate
-- `widy::Int`: width of boxcar window in y which determines size of region used for samples for the local covariance estimate</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/1ea1c00418bb02de290da723a85bcdd7979dcaa2/src/per_loc.jl#L77-L97">source</a></section></article><h2 id="Image-Preprocessing"><a class="docs-heading-anchor" href="#Image-Preprocessing">Image Preprocessing</a><a id="Image-Preprocessing-1"></a><a class="docs-heading-anchor-permalink" href="#Image-Preprocessing" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="CloudClean.prelim_infill!" href="#CloudClean.prelim_infill!"><code>CloudClean.prelim_infill!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">prelim_infill!(testim,bmaskim,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype::Int=32,widmult=1.4)
+- `widy::Int`: width of boxcar window in y which determines size of region used for samples for the local covariance estimate</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/777ffc1a0ec08389e500d1ce9e57d8e479d42788/src/per_loc.jl#L117-L137">source</a></section></article><h2 id="Image-Preprocessing"><a class="docs-heading-anchor" href="#Image-Preprocessing">Image Preprocessing</a><a id="Image-Preprocessing-1"></a><a class="docs-heading-anchor-permalink" href="#Image-Preprocessing" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="CloudClean.prelim_infill!" href="#CloudClean.prelim_infill!"><code>CloudClean.prelim_infill!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">    prelim_infill!(testim,bmaskim,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype::Int=32,widmult=1.4)
 
 This intial infill replaces masked pixels with a guess based on a smoothed
 boxcar. For large masked regions, the smoothing scale is increased. If this
@@ -96,7 +130,21 @@ infill values.
 - `widx`: initial size of boxcar smoothing window in x (default 19)
 - `widy`: initial size of boxcar smoothing window in y (default 19)
 - `ftype::Int`: determine the Float precision, 32 is Float32, otherwise Float64
-- `widmult`: multiplicative factor for increasing the smoothing scale at each iteration step</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/1ea1c00418bb02de290da723a85bcdd7979dcaa2/src/preprocess.jl#L127-L156">source</a></section></article><div class="admonition is-warning"><header class="admonition-header">Missing docstring.</header><div class="admonition-body"><p>Missing docstring for <code>sig_iqr</code>. Check Documenter&#39;s build log for details.</p></div></div><article class="docstring"><header><a class="docstring-binding" id="CloudClean.im_subrng" href="#CloudClean.im_subrng"><code>CloudClean.im_subrng</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">im_subrng(jx,jy,cx,cy,sx,sy,px0,py0,stepx,stepy,padx,pady,tilex,tiley) -&gt; xrng, yrng, star_ind
+- `widmult`: multiplicative factor for increasing the smoothing scale at each iteration step</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/777ffc1a0ec08389e500d1ce9e57d8e479d42788/src/preprocess.jl#L166-L195">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.sig_iqr" href="#CloudClean.sig_iqr"><code>CloudClean.sig_iqr</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">    sig_iqr(x)
+
+Calculate the normalized interquartile range (IQR) of an array as a robust measure of standard deviation.
+
+# Arguments
+- `x`: A 1D array or iterable.
+
+# Returns
+- The normalized IQR, computed as the IQR divided by 1.34896.
+
+# Examples
+```julia
+julia&gt; x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+julia&gt; result = sig_iqr(x)
+```</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/777ffc1a0ec08389e500d1ce9e57d8e479d42788/src/preprocess.jl#L11-L27">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.im_subrng" href="#CloudClean.im_subrng"><code>CloudClean.im_subrng</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">    im_subrng(jx,jy,cx,cy,sx,sy,px0,py0,stepx,stepy,padx,pady,tilex,tiley) -&gt; xrng, yrng, star_ind
 
 Computes the flux a star must have so that the PSF-based masking using `thr`
 would require a larger stamp area. Used for computational savings.
@@ -120,7 +168,26 @@ would require a larger stamp area. Used for computational savings.
 # Outputs:
 - `xrng`: slicing range of the tile in x
 - `yrng`: slicing range of the tile in y
-- `star_ind`: Bool mask of all stars falling within the tile (subimage)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/1ea1c00418bb02de290da723a85bcdd7979dcaa2/src/preprocess.jl#L67-L93">source</a></section></article><div class="admonition is-warning"><header class="admonition-header">Missing docstring.</header><div class="admonition-body"><p>Missing docstring for <code>add_sky_noise!</code>. Check Documenter&#39;s build log for details.</p></div></div><article class="docstring"><header><a class="docstring-binding" id="CloudClean.add_noise!" href="#CloudClean.add_noise!"><code>CloudClean.add_noise!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">add_noise!(testim2,gain;seed=2021)
+- `star_ind`: Bool mask of all stars falling within the tile (subimage)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/777ffc1a0ec08389e500d1ce9e57d8e479d42788/src/preprocess.jl#L106-L132">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.add_sky_noise!" href="#CloudClean.add_sky_noise!"><code>CloudClean.add_sky_noise!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">    add_sky_noise!(testim2, maskim, sig_iqr; seed=2021)
+
+Add sky noise to pixels in an image specified by a given mask.
+
+# Arguments
+- `testim2`: A mutable 2D array representing the image.
+- `maskim`: A 2D array representing the mask.
+- `sig_iqr`: The standard deviation of the noise distribution, generally calculated as the normalized IQR.
+- `seed`: An optional integer specifying the random number generator seed (default: 2021).
+
+# Returns
+- Modifies `testim2` in place by adding sky noise to the masked pixels.
+
+# Examples
+```julia
+julia&gt; testim2 = rand(100, 100)
+julia&gt; maskim = rand(Bool, 100, 100)
+julia&gt; sig_iqr = 0.5
+julia&gt; add_sky_noise!(testim2, maskim, sig_iqr, seed=2021)
+```</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/777ffc1a0ec08389e500d1ce9e57d8e479d42788/src/preprocess.jl#L52-L73">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.add_noise!" href="#CloudClean.add_noise!"><code>CloudClean.add_noise!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">    add_noise!(testim2,gain;seed=2021)
 
 Adds noise to an image that matches the Poisson noise of the pixel counts.
 A random seed to set a local random generator is provided for reproducible unit testing.
@@ -130,7 +197,7 @@ A random seed to set a local random generator is provided for reproducible unit 
 - `gain`: gain of detector to convert from photon count noise to detector noise
 
 # Keywords:
-- `seed`: random seed for random generator</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/1ea1c00418bb02de290da723a85bcdd7979dcaa2/src/preprocess.jl#L15-L27">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.kstar_circle_mask" href="#CloudClean.kstar_circle_mask"><code>CloudClean.kstar_circle_mask</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">kstar_circle_mask(Np;rlim=256) -&gt; circmask
+- `seed`: random seed for random generator</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/777ffc1a0ec08389e500d1ce9e57d8e479d42788/src/preprocess.jl#L32-L44">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="CloudClean.kstar_circle_mask" href="#CloudClean.kstar_circle_mask"><code>CloudClean.kstar_circle_mask</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">    kstar_circle_mask(Np;rlim=256) -&gt; circmask
 
 Generates a Bool mask for pixels beyond a given (squared) radius of the center of an image.
 
@@ -141,4 +208,4 @@ Generates a Bool mask for pixels beyond a given (squared) radius of the center o
 - `rlim`: squared radius (in pixels^2) beyond which pixels should be masked (default 256)
 
 # Outputs:
-- `circmask`: static Bool mask used for assigning pixels beyond some radius of the stellar center as &quot;ignored&quot;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/1ea1c00418bb02de290da723a85bcdd7979dcaa2/src/preprocess.jl#L45-L58">source</a></section></article><h2 id="DECam-Specific-Functions"><a class="docs-heading-anchor" href="#DECam-Specific-Functions">DECam Specific Functions</a><a id="DECam-Specific-Functions-1"></a><a class="docs-heading-anchor-permalink" href="#DECam-Specific-Functions" title="Permalink"></a></h2><div class="admonition is-warning"><header class="admonition-header">Missing docstring.</header><div class="admonition-body"><p>Missing docstring for <code>proc_discrete</code>. Check Documenter&#39;s build log for details.</p></div></div><div class="admonition is-warning"><header class="admonition-header">Missing docstring.</header><div class="admonition-body"><p>Missing docstring for <code>proc_continuous</code>. Check Documenter&#39;s build log for details.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Introduction</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Wednesday 31 May 2023 02:54">Wednesday 31 May 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+- `circmask`: static Bool mask used for assigning pixels beyond some radius of the stellar center as &quot;ignored&quot;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/andrew-saydjari/CloudClean.jl/blob/777ffc1a0ec08389e500d1ce9e57d8e479d42788/src/preprocess.jl#L84-L97">source</a></section></article><h2 id="DECam-Specific-Functions"><a class="docs-heading-anchor" href="#DECam-Specific-Functions">DECam Specific Functions</a><a id="DECam-Specific-Functions-1"></a><a class="docs-heading-anchor-permalink" href="#DECam-Specific-Functions" title="Permalink"></a></h2><div class="admonition is-warning"><header class="admonition-header">Missing docstring.</header><div class="admonition-body"><p>Missing docstring for <code>proc_discrete</code>. Check Documenter&#39;s build log for details.</p></div></div><div class="admonition is-warning"><header class="admonition-header">Missing docstring.</header><div class="admonition-body"><p>Missing docstring for <code>proc_continuous</code>. Check Documenter&#39;s build log for details.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Introduction</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Wednesday 31 May 2023 03:11">Wednesday 31 May 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
