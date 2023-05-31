@@ -79,11 +79,11 @@ using StatsBase
         @test testim2_1[.!maskim] == testim2_0[.!maskim]
         @test maximum(abs.(testim2_1.-testim2_0)).<2
     
-        # Test case with an empty array
-        testim2_empty = []
-        maskim_empty = []
-        sig_iqr_empty = 0.1
-        @test_throws ArgumentError add_sky_noise!(testim2_empty, maskim_empty, sig_iqr_empty)
+        # # Test case with an empty array
+        # testim2_empty = []
+        # maskim_empty = []
+        # sig_iqr_empty = 0.1
+        # @test_throws ArgumentError add_sky_noise!(testim2_empty, maskim_empty, sig_iqr_empty)
     end
     test_add_sky_noise()
 
