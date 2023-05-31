@@ -11,7 +11,7 @@ makedocs(
         prettyurls = get(ENV, "CI", nothing) == "true"
     ),
     pages    = [
-        # "Introduction" => "index.md",
+        "Introduction" => "index.md",
         "API Reference" => "api.md",
         # "Contributing" => "contrib.md"
     ]
