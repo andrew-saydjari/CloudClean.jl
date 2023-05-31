@@ -5,6 +5,25 @@ export condCovEst_wdiag
 export gen_pix_mask_trivial #
 export gen_pix_mask_circ #
 
+"""
+        gen_pix_mask_trivial(kmasked2d; Np=33)
+
+    Flatten a pixel mask and calculate the number of pixels used for the conditional infill.
+
+    # Arguments
+    - `kmasked2d`: A 2D array representing the masked pixels.
+    - `Np`: An optional integer specifying the number of pixels in a side (default: 33).
+
+    # Returns
+    - `kstar`: A flattened version of the input `kmasked2d` array.
+    - `kcond`: The count of unmasked pixels in the `kstar` array.
+
+    # Examples
+    ```julia
+    julia> kmasked2d = rand(Bool, 33, 33)
+    julia> kstar, kcond = gen_pix_mask_trivial(kmasked2d, Np=33)
+    ```
+"""
 function gen_pix_mask_trivial(kmasked2d;Np=33)
     kstar = kmasked2d
     kcond = Np^2-count(kstar)
@@ -12,6 +31,27 @@ function gen_pix_mask_trivial(kmasked2d;Np=33)
     return kstar[:], kcond
 end
 
+"""
+        gen_pix_mask_circ(kmasked2d, circmask; Np=33)
+
+    Generate a circular pixel mask and calculate the number of pixels used for the conditional infill.
+
+    # Arguments
+    - `kmasked2d`: A 2D array representing the masked pixels.
+    - `circmask`: A 2D array representing the circular mask.
+    - `Np`: An optional integer specifying the number of pixels in a side (default: 33).
+
+    # Returns
+    - `kstar`: A copy of the input `kmasked2d` array with circular masking applied.
+    - `kcond`: The count of unmasked pixels in the `kstar` array.
+
+    # Examples
+    ```julia
+    julia> kmasked2d = rand(Bool, 33, 33)
+    julia> circmask = kstar_circle_mask(33,rlim=256)
+    julia> kstar, kcond = gen_pix_mask_circ(kmasked2d, circmask, Np=33)
+    ```
+"""
 function gen_pix_mask_circ(kmasked2d,circmask;Np=33)
     kstar = kmasked2d .| circmask
     kcond = Np^2-count(kstar)
@@ -20,7 +60,7 @@ function gen_pix_mask_circ(kmasked2d,circmask;Np=33)
 end
 
 """
-    condCovEst_wdiag(cov_loc,μ,km,data_in;Np=33,export_mean=false,n_draw=0) -> out
+        condCovEst_wdiag(cov_loc,μ,km,data_in;Np=33,export_mean=false,n_draw=0) -> out
 
     Using a local covariance matrix estimate `cov_loc` and a set of known ("good") pixels `km`, this function computes a prediction for the mean value of masked pixels and the covariance matrix of the masked pixels. The output list can conditionally include the mean reconstruction and draws from the distribution of reconstructions.
 
@@ -75,7 +115,7 @@ function condCovEst_wdiag(cov_loc,μ,km,data_in;Np=33,export_mean=false,n_draw=0
 end
 
 """
-    build_cov!(cov::Array{T,2},μ::Array{T,1},cx::Int,cy::Int,bimage::Array{T,2},bism::Array{T,4},Np::Int,widx::Int,widy::Int) where T <:Union{Float32,Float64}
+        build_cov!(cov::Array{T,2},μ::Array{T,1},cx::Int,cy::Int,bimage::Array{T,2},bism::Array{T,4},Np::Int,widx::Int,widy::Int) where T <:Union{Float32,Float64}
 
     Constructs the local covariance matrix and mean for an image patch of size `Np` x `Np` pixels around a location
     of interest (`cx`,`cy`). The construction is just a lookup of pixel values from the stored boxcar-smoothed copies

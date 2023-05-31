@@ -5,15 +5,32 @@ export prelim_infill!
 export kstar_circle_mask
 export im_subrng
 export add_noise!
-export add_sky_noise! # Document
-export sig_iqr # Document
+export add_sky_noise!
+export sig_iqr
 
+"""
+        sig_iqr(x)
+
+    Calculate the normalized interquartile range (IQR) of an array as a robust measure of standard deviation.
+
+    # Arguments
+    - `x`: A 1D array or iterable.
+
+    # Returns
+    - The normalized IQR, computed as the IQR divided by 1.34896.
+
+    # Examples
+    ```julia
+    julia> x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    julia> result = sig_iqr(x)
+    ```
+"""
 function sig_iqr(x)
     return iqr(x)/1.34896
 end
 
 """
-    add_noise!(testim2,gain;seed=2021)
+        add_noise!(testim2,gain;seed=2021)
 
     Adds noise to an image that matches the Poisson noise of the pixel counts.
     A random seed to set a local random generator is provided for reproducible unit testing.
@@ -32,6 +49,28 @@ function add_noise!(testim2,gain;seed=2021)
     end
 end
 
+"""
+        add_sky_noise!(testim2, maskim, sig_iqr; seed=2021)
+
+    Add sky noise to pixels in an image specified by a given mask.
+
+    # Arguments
+    - `testim2`: A mutable 2D array representing the image.
+    - `maskim`: A 2D array representing the mask.
+    - `sig_iqr`: The standard deviation of the noise distribution, generally calculated as the normalized IQR.
+    - `seed`: An optional integer specifying the random number generator seed (default: 2021).
+
+    # Returns
+    - Modifies `testim2` in place by adding sky noise to the masked pixels.
+
+    # Examples
+    ```julia
+    julia> testim2 = rand(100, 100)
+    julia> maskim = rand(Bool, 100, 100)
+    julia> sig_iqr = 0.5
+    julia> add_sky_noise!(testim2, maskim, sig_iqr, seed=2021)
+    ```
+"""
 function add_sky_noise!(testim2,maskim,sig_iqr;seed=2021)
     rng = MersenneTwister(seed)
     dist = Distributions.Normal(0,sig_iqr)
@@ -43,7 +82,7 @@ function add_sky_noise!(testim2,maskim,sig_iqr;seed=2021)
 end
 
 """
-    kstar_circle_mask(Np;rlim=256) -> circmask
+        kstar_circle_mask(Np;rlim=256) -> circmask
 
     Generates a Bool mask for pixels beyond a given (squared) radius of the center of an image.
 
@@ -65,7 +104,7 @@ function kstar_circle_mask(Np;rlim=256)
 end
 
 """
-    im_subrng(jx,jy,cx,cy,sx,sy,px0,py0,stepx,stepy,padx,pady,tilex,tiley) -> xrng, yrng, star_ind
+        im_subrng(jx,jy,cx,cy,sx,sy,px0,py0,stepx,stepy,padx,pady,tilex,tiley) -> xrng, yrng, star_ind
 
     Computes the flux a star must have so that the PSF-based masking using `thr`
     would require a larger stamp area. Used for computational savings.
@@ -125,7 +164,7 @@ function im_subrng(jx,jy,cx,cy,sx,sy,px0,py0,stepx,stepy,padx,pady,tilex,tiley)
 end
 
 """
-    prelim_infill!(testim,bmaskim,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype::Int=32,widmult=1.4)
+        prelim_infill!(testim,bmaskim,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype::Int=32,widmult=1.4)
 
     This intial infill replaces masked pixels with a guess based on a smoothed
     boxcar. For large masked regions, the smoothing scale is increased. If this
