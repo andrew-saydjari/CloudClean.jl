@@ -9,38 +9,38 @@ export add_sky_noise!
 export sig_iqr
 
 """
-        sig_iqr(x)
+    sig_iqr(x)
 
-    Calculate the normalized interquartile range (IQR) of an array as a robust measure of standard deviation.
+Calculate the normalized interquartile range (IQR) of an array as a robust measure of standard deviation.
 
-    # Arguments
-    - `x`: A 1D array or iterable.
+# Arguments
+- `x`: A 1D array or iterable.
 
-    # Returns
-    - The normalized IQR, computed as the IQR divided by 1.34896.
+# Returns
+- The normalized IQR, computed as the IQR divided by 1.34896.
 
-    # Examples
-    ```julia
-    julia> x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    julia> result = sig_iqr(x)
-    ```
+# Examples
+```julia
+julia> x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+julia> result = sig_iqr(x)
+```
 """
 function sig_iqr(x)
     return iqr(x)/1.34896
 end
 
 """
-        add_noise!(testim2,gain;seed=2021)
+    add_noise!(testim2,gain;seed=2021)
 
-    Adds noise to an image that matches the Poisson noise of the pixel counts.
-    A random seed to set a local random generator is provided for reproducible unit testing.
+Adds noise to an image that matches the Poisson noise of the pixel counts.
+A random seed to set a local random generator is provided for reproducible unit testing.
 
-    # Arguments:
-    - `testim2`: input image which had infilling
-    - `gain`: gain of detector to convert from photon count noise to detector noise
+# Arguments:
+- `testim2`: input image which had infilling
+- `gain`: gain of detector to convert from photon count noise to detector noise
 
-    # Keywords:
-    - `seed`: random seed for random generator
+# Keywords:
+- `seed`: random seed for random generator
 """
 function add_noise!(testim2,gain;seed=2021)
     rng = MersenneTwister(seed)
@@ -50,28 +50,28 @@ function add_noise!(testim2,gain;seed=2021)
 end
 
 """
-        add_sky_noise!(testim2, maskim, sig_iqr; seed=2021)
+    add_sky_noise!(testim2, maskim, sig_iqr; seed=2021)
 
-    Add sky noise to pixels in an image specified by a given mask.
+Add sky noise to pixels in an image specified by a given mask.
 
-    # Arguments:
-    - `testim2`: A mutable 2D array representing the image.
-    - `maskim`: A 2D array representing the mask.
-    - `sig_iqr`: The standard deviation of the noise distribution, generally calculated as the normalized IQR.
+# Arguments:
+- `testim2`: A mutable 2D array representing the image.
+- `maskim`: A 2D array representing the mask.
+- `sig_iqr`: The standard deviation of the noise distribution, generally calculated as the normalized IQR.
 
-    # Keywords:
-    - `seed`: An optional integer specifying the random number generator seed (default: 2021).
+# Keywords:
+- `seed`: An optional integer specifying the random number generator seed (default: 2021).
 
-    # Returns:
-    - Modifies `testim2` in place by adding sky noise to the masked pixels.
+# Returns:
+- Modifies `testim2` in place by adding sky noise to the masked pixels.
 
-    # Examples:
-    ```julia
-    julia> testim2 = rand(100, 100)
-    julia> maskim = rand(Bool, 100, 100)
-    julia> sig_iqr = 0.5
-    julia> add_sky_noise!(testim2, maskim, sig_iqr, seed=2021)
-    ```
+# Examples:
+```julia
+julia> testim2 = rand(100, 100)
+julia> maskim = rand(Bool, 100, 100)
+julia> sig_iqr = 0.5
+julia> add_sky_noise!(testim2, maskim, sig_iqr, seed=2021)
+```
 """
 function add_sky_noise!(testim2,maskim,sig_iqr;seed=2021)
     rng = MersenneTwister(seed)
@@ -84,18 +84,18 @@ function add_sky_noise!(testim2,maskim,sig_iqr;seed=2021)
 end
 
 """
-        kstar_circle_mask(Np;rlim=256) -> circmask
+    kstar_circle_mask(Np;rlim=256) -> circmask
 
-    Generates a Bool mask for pixels beyond a given (squared) radius of the center of an image.
+Generates a Bool mask for pixels beyond a given (squared) radius of the center of an image.
 
-    # Arguments:
-    - `Np`: size of image stamp
+# Arguments:
+- `Np`: size of image stamp
 
-    # Keywords:
-    - `rlim`: squared radius (in pixels^2) beyond which pixels should be masked (default 256)
+# Keywords:
+- `rlim`: squared radius (in pixels^2) beyond which pixels should be masked (default 256)
 
-    # Outputs:
-    - `circmask`: static Bool mask used for assigning pixels beyond some radius of the stellar center as "ignored"
+# Outputs:
+- `circmask`: static Bool mask used for assigning pixels beyond some radius of the stellar center as "ignored"
 """
 function kstar_circle_mask(Np;rlim=256)
     halfNp = (Np-1) ÷ 2
@@ -106,31 +106,31 @@ function kstar_circle_mask(Np;rlim=256)
 end
 
 """
-        im_subrng(jx,jy,cx,cy,sx,sy,px0,py0,stepx,stepy,padx,pady,tilex,tiley) -> xrng, yrng, star_ind
+    im_subrng(jx,jy,cx,cy,sx,sy,px0,py0,stepx,stepy,padx,pady,tilex,tiley) -> xrng, yrng, star_ind
 
-    Computes the flux a star must have so that the PSF-based masking using `thr`
-    would require a larger stamp area. Used for computational savings.
+Computes the flux a star must have so that the PSF-based masking using `thr`
+would require a larger stamp area. Used for computational savings.
 
-    # Arguments:
-    - `jx`: tile index along x
-    - `jy`: tile index along y
-    - `cx`: list of stellar x-coordinates
-    - `cy`: list of stellar y-coordinates
-    - `sx`: size of original image in x
-    - `sy`: size of original image in y
-    - `px0`: maximal padding in x to account for stars outside image
-    - `py0`: maximal padding in y to account for stars outside image
-    - `stepx`: tiling step size in x
-    - `stepy`: tiling step size in y
-    - `padx`: tile padding in x required to account for local stamp size, sample size, and pixels outside the image
-    - `pady`: tile padding in x required to account for local stamp size, sample size, and pixels outside the image
-    - `tilex`: total number of tile divisions along x
-    - `tiley`: total number of tile divisions along y
+# Arguments:
+- `jx`: tile index along x
+- `jy`: tile index along y
+- `cx`: list of stellar x-coordinates
+- `cy`: list of stellar y-coordinates
+- `sx`: size of original image in x
+- `sy`: size of original image in y
+- `px0`: maximal padding in x to account for stars outside image
+- `py0`: maximal padding in y to account for stars outside image
+- `stepx`: tiling step size in x
+- `stepy`: tiling step size in y
+- `padx`: tile padding in x required to account for local stamp size, sample size, and pixels outside the image
+- `pady`: tile padding in x required to account for local stamp size, sample size, and pixels outside the image
+- `tilex`: total number of tile divisions along x
+- `tiley`: total number of tile divisions along y
 
-    # Outputs:
-    - `xrng`: slicing range of the tile in x
-    - `yrng`: slicing range of the tile in y
-    - `star_ind`: Bool mask of all stars falling within the tile (subimage)
+# Outputs:
+- `xrng`: slicing range of the tile in x
+- `yrng`: slicing range of the tile in y
+- `star_ind`: Bool mask of all stars falling within the tile (subimage)
 """
 function im_subrng(jx,jy,cx,cy,sx,sy,px0,py0,stepx,stepy,padx,pady,tilex,tiley)
     lowbx = (1 + (jx-1)*stepx)
@@ -166,34 +166,34 @@ function im_subrng(jx,jy,cx,cy,sx,sy,px0,py0,stepx,stepy,padx,pady,tilex,tiley)
 end
 
 """
-        prelim_infill!(testim,bmaskim,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype::Int=32,widmult=1.4)
+    prelim_infill!(testim,bmaskim,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype::Int=32,widmult=1.4)
 
-    This intial infill replaces masked pixels with a guess based on a smoothed
-    boxcar. For large masked regions, the smoothing scale is increased. If this
-    iteration takes too long/requires too strong of masking, the masked pixels
-    are replaced with the median of the image.
+This intial infill replaces masked pixels with a guess based on a smoothed
+boxcar. For large masked regions, the smoothing scale is increased. If this
+iteration takes too long/requires too strong of masking, the masked pixels
+are replaced with the median of the image.
 
-    We use 3 copies of the input image and mask image. The first
-    is a view (with reflective boundary condition padding) with the pixels to be infilled
-    replaced with zeros, the second is allocated to hold various smoothings of the image,
-    and the third holds the output image which contains our best infill guess. A final Bool
-    array of size corresponding to the image is used to keep track of pixels that have safe
-    infill values.
+We use 3 copies of the input image and mask image. The first
+is a view (with reflective boundary condition padding) with the pixels to be infilled
+replaced with zeros, the second is allocated to hold various smoothings of the image,
+and the third holds the output image which contains our best infill guess. A final Bool
+array of size corresponding to the image is used to keep track of pixels that have safe
+infill values.
 
-    # Arguments:
-    - `testim`: input image which requires infilling
-    - `bmaskim`: input mask indicating which pixels require infilling
-    - `bimage`: preallocated array for smoothed version of input image
-    - `bimageI`: preallocated array for smoothed mask counting the samples for each estimate
-    - `testim2`: inplace modified ouptut array for infilled version of image input
-    - `bmaskim2`: inplace modified mask to keep track of which pixels still need infilling
-    - `goodpix`: preallocated array for Bool indexing pixels with good infill
+# Arguments:
+- `testim`: input image which requires infilling
+- `bmaskim`: input mask indicating which pixels require infilling
+- `bimage`: preallocated array for smoothed version of input image
+- `bimageI`: preallocated array for smoothed mask counting the samples for each estimate
+- `testim2`: inplace modified ouptut array for infilled version of image input
+- `bmaskim2`: inplace modified mask to keep track of which pixels still need infilling
+- `goodpix`: preallocated array for Bool indexing pixels with good infill
 
-    # Keywords:
-    - `widx`: initial size of boxcar smoothing window in x (default 19)
-    - `widy`: initial size of boxcar smoothing window in y (default 19)
-    - `ftype::Int`: determine the Float precision, 32 is Float32, otherwise Float64
-    - `widmult`: multiplicative factor for increasing the smoothing scale at each iteration step
+# Keywords:
+- `widx`: initial size of boxcar smoothing window in x (default 19)
+- `widy`: initial size of boxcar smoothing window in y (default 19)
+- `ftype::Int`: determine the Float precision, 32 is Float32, otherwise Float64
+- `widmult`: multiplicative factor for increasing the smoothing scale at each iteration step
 """
 function prelim_infill!(testim,bmaskim,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype::Int=32,widmult=1.4)
     if ftype == 32
