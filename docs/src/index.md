@@ -33,9 +33,7 @@ This code is based heavily upon (and is in some sense a simplification of) [Clou
 
 ## Example
 
-An example of the quality of the prediction for missing pixels is demonstrated on this image from the WISE 12 μm dust map. More examples, notebooks, and documentation are in process.
-
-[!["WISE infill example"][infill-img]][infill-url]
+An intial example is provided in a Jupyter notebook in the "examples" folder. More examples, notebooks, and documentation are in process.
 
 ## Contributing and Questions
 
@@ -48,7 +46,3 @@ bug or request a feature is extremely valuable in helping us prioritize what to 
 ```@contents
 Pages = ["index.md","api.md"]
 ```
-
-<!-- URLS -->
-[infill-img]: docs/src/assets/infill_radius_white.gif
-[infill-url]: https://faun.rc.fas.harvard.edu/saydjari/CloudCovErr/thr_test.mp4
