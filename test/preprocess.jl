@@ -1,4 +1,5 @@
 @testset "preprocess.jl" begin
+
     out = kstar_circle_mask(3;rlim=1)
     ref = [
         true   false   true   ;
@@ -83,7 +84,5 @@
         @test_throws DomainError add_sky_noise!(testim2_empty, maskim_empty, sig_iqr_empty)
     end
     test_add_sky_noise()
-
-
 
 end

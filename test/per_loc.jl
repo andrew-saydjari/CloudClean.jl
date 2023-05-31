@@ -1,6 +1,5 @@
 @testset "per_loc.jl" begin
 
-
     function test_gen_pix_mask_trivial()
         # Test case 1
         kmasked2d = falses(33, 33)
@@ -66,4 +65,25 @@
         @test cov[50, 50] ≈ 1.0
     end
     test_build_cov()
+
+    function test_condCovEst_wdiag()
+        # Test case 1
+        cov_loc = rand(100, 100)
+        μ = rand(100)
+        km = rand(Bool, 100)
+        data_in = rand(100)
+        Np = 33
+        export_mean = true
+        n_draw = 10
+        seed = 2022
+    
+        out = condCovEst_wdiag(cov_loc, μ, km, data_in, Np=Np, export_mean=export_mean, n_draw=n_draw, seed=seed)
+    
+        # Assert conditions on the output
+        @test length(out) == 2
+        @test size(out[1]) == (100,)
+        @test size(out[2]) == (100, n_draw)
+
+    end
+    test_condCovEst_wdiag()
 end
