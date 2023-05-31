@@ -46,7 +46,7 @@ bug or request a feature is extremely valuable in helping us prioritize what to 
 ## Table of Contents
 
 ```@contents
-Pages = ["index.md","api.md","contrib.md"]
+Pages = ["index.md","api.md"]
 ```
 
 <!-- URLS -->

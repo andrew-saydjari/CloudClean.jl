@@ -35,7 +35,8 @@ end
 
 """
         gen_pix_mask_circ(kmasked2d, circmask; Np=33) -> kstar, kcond
-
+    
+    <!-- -->
     Generate a circular pixel mask and calculate the number of pixels used for the conditional infill.
 
     # Arguments:

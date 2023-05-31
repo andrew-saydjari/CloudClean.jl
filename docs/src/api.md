@@ -28,7 +28,7 @@ add_noise!
 kstar_circle_mask
 ```
 
-## DECam Specific Functions
+## Full Image Processing Functions
 
 ```@docs
 proc_discrete
