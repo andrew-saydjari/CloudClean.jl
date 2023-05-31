@@ -2,8 +2,8 @@ using LinearAlgebra
 
 export build_cov!
 export condCovEst_wdiag
-export gen_pix_mask_trivial #
-export gen_pix_mask_circ #
+export gen_pix_mask_trivial
+export gen_pix_mask_circ
 
 """
     gen_pix_mask_trivial(kmasked2d; Np=33) -> kstar, kcond
