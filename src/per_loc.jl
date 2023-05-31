@@ -2,8 +2,8 @@ using LinearAlgebra
 
 export build_cov!
 export condCovEst_wdiag
-export condCovEst_wdiag_full
-export gen_pix_mask_AKS
+export gen_pix_mask_trivial #
+export gen_pix_mask_circ #
 
 function gen_pix_mask_trivial(kmasked2d;Np=33)
     kstar = kmasked2d
@@ -12,104 +12,34 @@ function gen_pix_mask_trivial(kmasked2d;Np=33)
     return kstar[:], kcond
 end
 
-"""
-    condCovEst_wdiag(cov_loc,μ,km,kpsf2d,data_in,stars_in,psft;Np=33,export_mean=false,n_draw=0,diag_on=true) -> out
+function gen_pix_mask_circ(kmasked2d,circmask;Np=33)
+    kstar = kmasked2d .| circmask
+    kcond = Np^2-count(kstar)
 
-    Using a local covariance matrix estimate `cov_loc` and a set of known ("good") pixels `km`
-    and "hidden" pixels `kpsf2d`, this function computes a prediction for the mean value
-    of the `kpsf2d` pixels and the covariance matrix of the `kpsf2d` pixels. In terms of
-    statistics use to adjust the photometry of a star, we are only interested in the
-    pixels masked as a result of the star (i.e. not a detector defect or cosmic ray nearby).
-    The residual image `data_in` and a model of the counts above the background coming from the
-    star `stars_in` for the local patch are also inputs of the function. Correction factors for
-    the photometric flux and flux uncertainities are outputs as well as a chi2 value for the
-    "good" pixels. The output list can conditionally include the mean reconstruction and
-    draws from the distribution of reconstructions.
+    return kstar[:], kcond
+end
+
+"""
+    condCovEst_wdiag(cov_loc,μ,km,data_in;Np=33,export_mean=false,n_draw=0) -> out
+
+    Using a local covariance matrix estimate `cov_loc` and a set of known ("good") pixels `km`, this function computes a prediction for the mean value of masked pixels and the covariance matrix of the masked pixels. The output list can conditionally include the mean reconstruction and draws from the distribution of reconstructions.
 
     # Arguments:
     - `cov_loc`: local covariance matrix
     - `μ`: vector containing mean value for each pixel in the patch
     - `km`: unmasked pixels
-    - `kpsf2d`: pixels masked due to the star of interest
-    - `data_in`: (non-infilled) residual image in local patch
-    - `psft`: static array (image) of the stellar PSF
+    - `data_in`: input image
 
     # Keywords:
     - `Np`: size of local covariance matrix in pixels (default 33)
     - `export_mean`: when true, returns the mean conditional prediction for the "hidden" pixels (default false)
     - `n_draw`: when nonzero, returns that number of realizations of the conditional infilling (default 0)
-    - `diag_on`: flag for adding to the pixelwise uncertainty based on the photoelectron counts of the modeled star (default true)
 
     # Outputs:
-    - `out[1][1]`: flux uncertainity of the star
-    - `out[1][2]`: flux uncertainity of the star assuming the covariance matrix were diagonal
-    - `out[1][3]`: flux correction which must be added to correct the input flux estimate
-    - `out[1][4]`: flux correction coming from the residuals (fdb_res)
-    - `out[1][5]`: flux correction coming from the predicted background (fdb_pred)
-    - `out[1][6]`: chi2 for the "good" pixels under `cov_loc` as a metric on how good our assumptions are
-    - `out[2]`: local region (image) with "hidden" pixels replaced by the mean conditional estimate (optional output)
-    - `out[end]`: local region (image) with "hidden" pixels replaced by the draws from the conditional distribution (optional output). Array is flattened to npix x n_draw.
+    - `out[1]`: input image returned with masked pixels replaced with mean prediction
+    - `out[2]`: input image returned with masked pixels replaced with a draw from the predicted distribution
 """
-function condCovEst_wdiag_discrete(cov_loc,μ,km,kpsf2d,data_in,stars_in,psft;Np=33,export_mean=false,n_draw=0,diag_on=true)
-    k = .!km
-    kstar = kpsf2d[:]
-    if diag_on
-        for i=1:Np*Np cov_loc[i,i] += stars_in[i] end
-    end
-    cov_kk = Symmetric(cov_loc[k,k])
-    cov_kkstar = cov_loc[k,kstar];
-    cov_kstarkstar = cov_loc[kstar,kstar];
-    icov_kkC = cholesky(cov_kk)
-    icovkkCcovkkstar = icov_kkC\cov_kkstar
-    predcovar = Symmetric(cov_kstarkstar - (cov_kkstar'*icovkkCcovkkstar))
-    ipcovC = cholesky(predcovar)
-
-    @views uncond_input = data_in[:]
-    @views cond_input = data_in[:].- μ
-
-    kstarpredn = (cond_input[k]'*icovkkCcovkkstar)'
-    kstarpred = kstarpredn .+ μ[kstar]
-    @views p = psft[kpsf2d][:]
-    ipcovCp = ipcovC\p
-
-    #@views std_wdiag = sqrt(abs(sum((pw.^(2)).*diag(predcovar[kpsf1d_kstar,kpsf1d_kstar]))))/sum(p2w)
-    @views var_wdb = (p'*ipcovCp)
-
-    var_diag = 0
-    for i in 1:size(predcovar)[1]
-        var_diag += (p[i]^2)/predcovar[i,i]
-    end
-
-    @views resid_mean = (uncond_input[kstar]'*ipcovCp)./var_wdb
-    @views pred_mean = (kstarpred'*ipcovCp)./var_wdb
-
-    #if we can afford it, a nice check would be how good of a covariance matrix
-    #cov is for the k pixels (which we think are clean)
-    chi2 = cond_input[k]'*(icov_kkC\cond_input[k])
-
-    # Currently limited to the Np region. Often useful to have some context with a larger
-    # surrounding region... TO DO to implement
-    out = []
-    push!(out,[sqrt(var_wdb^(-1)) sqrt(var_diag^(-1)) pred_mean-resid_mean resid_mean pred_mean chi2])
-    if export_mean
-        mean_out = copy(data_in)
-        mean_out[kstar] .= kstarpred
-        push!(out,mean_out)
-    end
-    if n_draw != 0
-        covsvd = svd(predcovar)
-        sqrt_cov = covsvd.V*diagm(sqrt.(covsvd.S))*covsvd.Vt;
-        noise = sqrt_cov*randn(size(sqrt_cov)[1],n_draw)
-
-        draw_out = repeat(copy(data_in)[:],outer=[1 n_draw])
-        draw_out[kstar,:] .= repeat(kstarpred,outer=[1 n_draw]) .+ noise
-        push!(out,draw_out)
-    end
-
-    return out
-end
-
-function condCovEst_wdiag_continuous(cov_loc,μ,km,data_in;Np=33,export_mean=false,n_draw=0,seed=2022)
+function condCovEst_wdiag(cov_loc,μ,km,data_in;Np=33,export_mean=false,n_draw=0,seed=2022)
     k = .!km
     kstar = km
     cov_kk = Symmetric(cov_loc[k,k])
@@ -126,8 +56,6 @@ function condCovEst_wdiag_continuous(cov_loc,μ,km,data_in;Np=33,export_mean=fal
     kstarpredn = (cond_input[k]'*icovkkCcovkkstar)'
     kstarpred = kstarpredn .+ μ[kstar]
 
-    # Currently limited to the Np region. Often useful to have some context with a larger
-    # surrounding region... TO DO to implement
     out = []
     if export_mean
         mean_out = copy(data_in)

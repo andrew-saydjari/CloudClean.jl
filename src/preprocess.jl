@@ -4,11 +4,32 @@ using Distributions
 export prelim_infill!
 export kstar_circle_mask
 export im_subrng
+export add_noise!
 export add_sky_noise! # Document
 export sig_iqr # Document
 
 function sig_iqr(x)
     return iqr(x)/1.34896
+end
+
+"""
+    add_noise!(testim2,gain;seed=2021)
+
+    Adds noise to an image that matches the Poisson noise of the pixel counts.
+    A random seed to set a local random generator is provided for reproducible unit testing.
+
+    # Arguments:
+    - `testim2`: input image which had infilling
+    - `gain`: gain of detector to convert from photon count noise to detector noise
+
+    # Keywords:
+    - `seed`: random seed for random generator
+"""
+function add_noise!(testim2,gain;seed=2021)
+    rng = MersenneTwister(seed)
+    for i in eachindex(testim2)
+        @inbounds testim2[i] = rand(rng, Distributions.Poisson(convert(Float64,gain*testim2[i])))/gain
+    end
 end
 
 function add_sky_noise!(testim2,maskim,sig_iqr;seed=2021)
