@@ -1,3 +1,5 @@
+using StatsBase
+
 @testset "preprocess.jl" begin
 
     out = kstar_circle_mask(3;rlim=1)
