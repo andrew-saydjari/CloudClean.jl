@@ -7,14 +7,14 @@
 Image infilling algorithm with focus on statistically accuracy
 
 ## Installation
-
+<!-- 
 **CloudClean** is a registered package so a stable version can be installed using `Pkg.add`.
 
 ```julia
 import Pkg
 Pkg.add("CloudClean")
 ```
-
+-->
 For the most recent development version, install directly from the GitHub
 
 ```julia
