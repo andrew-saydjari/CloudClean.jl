@@ -97,7 +97,7 @@ function condCovEst_wdiag(cov_loc,μ,km,data_in;Np=33,export_mean=false,n_draw=0
     @views uncond_input = data_in[:]
     @views cond_input = data_in[:].- μ
 
-    kstarpredn = ((cond_input[k])'*icovkkCcovkkstar)'
+    kstarpredn = (cond_input[k]'*icovkkCcovkkstar)'
     kstarpred = kstarpredn .+ μ[kstar]
 
     out = []
