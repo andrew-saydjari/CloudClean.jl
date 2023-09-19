@@ -199,7 +199,7 @@ julia> result = proc_continuous([50],[50],raw_image, mask_image, Np=33, widx=129
 ```
     
 """
-function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,tiley=tilex,seed=2021,ftype::Int=32,rlim=625,ndraw=0)
+function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,tiley=tilex,seed=2021,ftype::Int=32,rlim=625,ndraw=0,sym::Bool=true)
     radNp = (Np-1)÷2
     if ftype == 32
         T = Float32
@@ -277,17 +277,29 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
     in_subimage = zeros(T,stepx+2*padx,stepy+2*pady)
     ism = zeros(T,stepx+2*padx,stepy+2*pady)
     bimage = zeros(T,stepx+2*padx-2*Δx,stepy+2*pady-2*Δy)
-    bism = zeros(T,stepx+2*padx-2*Δx,stepy+2*pady-2*Δy,2*Np-1, Np);
+    bism = if sym
+            zeros(T,stepx+2*padx-2*Δx,stepy+2*pady-2*Δy,2*Np-1, 2*Np-1);
+        else
+            zeros(T,stepx+2*padx-2*Δx,stepy+2*pady-2*Δy,2*Np-1, Np);
+        end
     for jx=1:tilex, jy=1:tiley
         xrng, yrng, star_ind = im_subrng(jx,jy,cx,cy,sx0+2,sy0+2,px0,py0,stepx,stepy,padx,pady,tilex,tiley)
         cntStar = length(star_ind)
         if cntStar > 0
             in_subimage .= in_image[xrng,yrng]
-            cov_avg!(bimage, ism, bism, in_subimage, widx=widx, widy=widy,Np=Np)
+            if sym
+                cov_avg_sym!(bimage, ism, bism, in_subimage, widx=widx, widy=widy,Np=Np)
+            else
+                cov_avg!(bimage, ism, bism, in_subimage, widx=widx, widy=widy,Np=Np)
+            end
             offx = padx-Δx-(jx-1)*stepx
             offy = pady-Δy-(jy-1)*stepy
             for i in star_ind
-                build_cov!(cov,μ,cx[i]+offx,cy[i]+offy,bimage,bism,Np,widx,widy)
+                if sym
+                    build_cov_sym!(cov,μ,cx[i]+offx,cy[i]+offy,bimage,bism,Np,widx,widy)
+                else
+                    build_cov!(cov,μ,cx[i]+offx,cy[i]+offy,bimage,bism,Np,widx,widy)
+                end
                 cov_stamp = cx[i]-radNp:cx[i]+radNp,cy[i]-radNp:cy[i]+radNp
                     
                 kmasked2d = in_bmaskd[cov_stamp[1],cov_stamp[2]]
