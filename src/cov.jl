@@ -123,3 +123,48 @@ function cov_avg!(bimage, ism, bism, in_image; Np::Int=33, widx::Int=129, widy::
     end
     return
 end
+
+"""
+    cov_avg_sym!(bimage, ism, bism, in_image; Np::Int=33, widx::Int=129, widy::Int=129, ftype::Int=32)
+
+Key function for constructing the (shifted and multiplied) versions of the input image used to quickly
+estimate the local covariance matrix at a large number of locations. The main output is in the preallocated
+`bism` which is used as an input to `build_cov!`. Version of cov_avg! using symmetric training shifts.
+
+# Arguments:
+- `bimage`: preallocated output array for the boxcar smoothed unshifted image
+- `ism`: preallocated intermediate array for the input image times itself shifted
+- `bism`: preallocated output array to store boxcar-smoothed image products for all shifts
+- `in_image`: input image the local covariance of which we want to estimate
+
+# Keywords:
+- `Np::Int`: size of local covariance matrix in pixels (default 33)
+- `widx::Int`: width of boxcar window in x which determines size of region used for samples for the local covariance estimate (default 129)
+- `widy::Int`: width of boxcar window in y which determines size of region used for samples for the local covariance estimate (default 129)
+- `ftype::Int`: determine the Float precision, 32 is Float32, otherwise Float64
+"""
+function cov_avg_sym!(bimage, ism, bism, in_image; Np::Int=33, widx::Int=129, widy::Int=129, ftype::Int=32)
+    if ftype == 32
+        T = Float32
+    else
+        T = Float64
+    end
+
+    Δx = (widx-1)÷2
+    Δy = (widy-1)÷2
+    halfNp = (Np-1) ÷ 2
+
+    (sx1, sy1) = size(in_image)
+    tot = zeros(T,sx1);
+    boxsmooth!(bimage,in_image,tot,widx,widy)
+    # loop over shifts
+    for dc=-(Np-1):Np-1       # column shift loop
+        for dr=-(Np-1):Np-1   # row loop, incl negatives
+            # ism = image, shifted and multipled
+            @inbounds ism .= in_image .* ShiftedArrays.circshift(in_image,(-dr, -dc))
+            fill!(tot,0)
+            boxsmooth!(view(bism,:,:,dr+Np,dc+Np),ism,tot,widx,widy) # bism = boxcar(ism)
+        end
+    end
+    return
+end

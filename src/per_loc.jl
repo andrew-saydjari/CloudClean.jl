@@ -174,3 +174,59 @@ function build_cov!(cov::Array{T,2},μ::Array{T,1},cx::Int,cy::Int,bimage::Array
     cov .*= (widx*widy)/((widx*widy)-1)
     return
 end
+
+"""
+    build_cov_sym!(cov::Array{T,2},μ::Array{T,1},cx::Int,cy::Int,bimage::Array{T,2},bism::Array{T,4},Np::Int,widx::Int,widy::Int) where T <:Union{Float32,Float64}
+
+Constructs the local covariance matrix and mean for an image patch of size `Np` x `Np` pixels around a location
+of interest (`cx`,`cy`). The construction is just a lookup of pixel values from the stored boxcar-smoothed copies
+of the input image times itself shifted in `bism`. Passing the smoothed image `bimage` and the widths of the boxcar
+mean `widx` and `widy` is helpful for the mean and normalization. The covariance and mean are updated in place
+for speed since this operation may be performed billions of times since we construct a new covariance matrix for
+every detection. Math may either be performed `Float32` or `Float64`. Version of build_cov! that uses symmetric
+training shifts.
+
+# Arguments:
+- `cov::Array{T,2}`: preallocated output array for local covariance matrix
+- `μ::Array{T,1}`: preallocated output vector for local mean
+- `cx::Int`: x-coordinate of the center of the local region
+- `cy::Int`: y-coordinate of the center of the local region
+- `bimage::Array{T,2}`: boxcar smoothed unshifted image
+- `bism::Array{T,4}`: boxcar-smoothed image products for all shifts
+- `Np::Int`: size of local covariance matrix in pixels
+- `widx::Int`: width of boxcar window in x which determines size of region used for samples for the local covariance estimate
+- `widy::Int`: width of boxcar window in y which determines size of region used for samples for the local covariance estimate
+"""
+function build_cov_sym!(cov::Array{T,2},μ::Array{T,1},cx::Int,cy::Int,bimage::Array{T,2},bism::Array{T,4},Np::Int,widx::Int,widy::Int) where T <:Union{Float32,Float64}
+    halfNp = (Np-1) ÷ 2
+    Δr, Δc = cx-(halfNp+1), cy-(halfNp+1)
+    for dc=-(Np-1):Np-1       # column shift loop
+        if dc >= 0
+            pcr = 1:Np-dc
+        end
+        if (dc < 0)
+            pcr = 1-dc:Np
+        end
+        for dr=-(Np-1):Np-1    # row shift loop
+            if dr >= 0
+                prr = 1:Np-dr
+            end
+            if (dr < 0)
+                prr = 1-dr:Np
+            end
+
+            for pc=pcr, pr=prr
+                i = ((pc   -1)*Np)+pr
+                j = ((pc+dc-1)*Np)+pr+dr
+                @inbounds μ1μ2 = bimage[pr+Δr,pc+Δc]*bimage[pr+dr+Δr,pc+dc+Δc]/((widx*widy)^2)
+                @inbounds cov[i,j] = bism[pr+Δr,pc+Δc,dr+Np,dc+Np]/(widx*widy) - μ1μ2
+                if i == j
+                    @inbounds μ[i] = sqrt(μ1μ2)
+                end
+            end
+        end
+    end
+    cov .+= cov'
+    cov .*= (widx*widy)/((widx*widy)-1)/2
+    return
+end
