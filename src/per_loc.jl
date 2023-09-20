@@ -1,6 +1,7 @@
 using LinearAlgebra
 
 export build_cov!
+export build_cov_sym!
 export condCovEst_wdiag
 export gen_pix_mask_trivial
 export gen_pix_mask_circ
