@@ -6,6 +6,7 @@ import ShiftedArrays
 export cov_avg!
 export boxsmooth!
 export outest_bounds
+export cov_avg_sym!
 
 """
     outest_bounds(cx,sx) -> px0
