@@ -4,6 +4,7 @@
 
 ```@docs
 cov_avg!
+cov_avg_sym!
 boxsmooth!
 outest_bounds
 ```
@@ -15,6 +16,7 @@ gen_pix_mask_trivial
 gen_pix_mask_circ
 condCovEst_wdiag
 build_cov!
+build_cov_sym!
 ```
 
 ## Image Preprocessing
