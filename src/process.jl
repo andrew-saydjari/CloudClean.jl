@@ -143,7 +143,7 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
                     kstar, kcond = gen_pix_mask_trivial(kmasked2d;Np=Np)
                     data_in = in_image_raw[cov_stamp[1],cov_stamp[2]]
                     try
-                        stat_out = condCovEst_wdiag_continuous(cov,μ,kstar,data_in,Np=Np,export_mean=true,n_draw=ndraw,seed=seed)
+                        stat_out = condCovEst_wdiag(cov,μ,kstar,data_in,Np=Np,export_mean=true,n_draw=ndraw,seed=seed)
                         
                         data_in[kstar].=stat_out[1][kstar]
                         in_image_raw[cov_stamp[1],cov_stamp[2]].=data_in
