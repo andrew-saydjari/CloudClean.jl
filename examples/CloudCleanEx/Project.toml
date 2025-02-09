@@ -1,0 +1,5 @@
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+CloudClean = "fe36dd89-bde2-4e71-a372-eae745b047b6"
+ColorSchemes = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
+FITSIO = "525bcba6-941b-5504-bd06-fd0dc1a4d2eb"
