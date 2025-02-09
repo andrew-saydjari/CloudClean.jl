@@ -390,7 +390,7 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
                     draw_in[kbad].= kstarpredn .+ μ[kbad] .+ noise[i,:];
                     out_draw[cov_stamp[1],cov_stamp[2],i].=draw_in
                 end
-                kmasked2d[kstar].=false
+                kmasked2d[kbad].=false
                 in_bmaskd[cov_stamp[1],cov_stamp[2]].=kmasked2d
                 cntStar0 += cntStar
             end
