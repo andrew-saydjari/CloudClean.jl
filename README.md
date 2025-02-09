@@ -44,7 +44,7 @@ issue](https://github.com/andrew-saydjari/CloudClean.jl/issues/new) to report a
 bug or request a feature is extremely valuable in helping us prioritize what to work on, so don't hesitate.
 
 <!-- URLS -->
-[action-img]: https://github.com/andrew-saydjari/CloudClean.jl/workflows/CI_lite/badge.svg
+[action-img]: https://github.com/andrew-saydjari/CloudClean.jl/workflows/CI/badge.svg
 [action-url]: https://github.com/andrew-saydjari/CloudClean.jl/actions
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
