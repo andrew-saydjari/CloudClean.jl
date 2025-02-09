@@ -321,6 +321,7 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
     else
         zeros(T,stepx+2*padx-2*Δx,stepy+2*pady-2*Δy,2*Np-1, Np);
     end
+    rng = MersenneTwister(seed)
     for jx=1:tilex, jy=1:tiley
         xrng, yrng, star_ind = im_subrng(jx,jy,cx,cy,sx0+2,sy0+2,px0,py0,stepx,stepy,padx,pady,tilex,tiley)
         cntStar = length(star_ind)
