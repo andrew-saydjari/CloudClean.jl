@@ -346,6 +346,10 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
                 kmasked2d = in_bmaskd[cov_stamp[1],cov_stamp[2]]
                 kbad, kgood = gen_pix_mask_circ(kmasked2d,circmask;Np=Np)
 
+                println("kbad: ", length(kbad))
+                println("kgood: ", length(kgood))
+                println("kbad: ", kbad)
+                println("kgood: ", kgood)
                 sampCov = cov
                 cov_kgood_kgood = Symmetric(sampCov[kgood,kgood])
                 cov_kgood_kbad = sampCov[kgood,kbad];
