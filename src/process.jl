@@ -42,7 +42,7 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
     end
 
     # renaming to match conventions
-    ref_im = raw_image
+    ref_im = convert(Array{T}, raw_image)
     bmaskd = mask_image
     (sx0, sy0) = size(ref_im)
     
@@ -50,11 +50,14 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
     x_stars = map(x->x[1],cartIndx)
     y_stars = map(x->x[2],cartIndx)
 
+    # Calculate distances from image center
+    center_x = sx0 ÷ 2
+    center_y = sy0 ÷ 2
+    dist_from_cen = sqrt.((x_stars .- center_x).^2 + (y_stars .- center_y).^2)
+
     (Nstars,) = size(x_stars)
     
-    mod_im = StatsBase.median(ref_im)*ones(T,(sx0, sy0))
-
-    testim = mod_im .- ref_im
+    testim = ref_im
     bimage = zeros(T,sx0,sy0)
     bimageI = zeros(Int64,sx0,sy0)
     testim2 = zeros(T,sx0,sy0)
@@ -62,7 +65,7 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
     goodpix = zeros(Bool,sx0,sy0)
 
     prelim_infill!(testim,bmaskd,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype=ftype)
-    testim .= mod_im .- ref_im #fixes current overwrite for 0 infilling
+    testim .= ref_im #fixes current overwrite for 0 infilling
 
     ## calculate the star farthest outside the edge of the image in x and y
     cx = round.(Int,x_stars)
@@ -94,10 +97,6 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
     
     add_sky_noise!(in_image,in_bmaskd,in_sigiqr;seed=seed)
 
-    ## iterate over all star positions and compute errorbars/debiasing corrections
-    star_stats = zeros(T,10,Nstars)
-    star_k = zeros(Int32,10,Nstars)
-
     cov = zeros(T,Np*Np,Np*Np)
     μ = zeros(T,Np*Np)
 
@@ -115,6 +114,7 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
     else
         zeros(T,stepx+2*padx-2*Δx,stepy+2*pady-2*Δy,2*Np-1, Np);
     end
+    rng = MersenneTwister(seed)
     for jx=1:tilex, jy=1:tiley
         xrng, yrng, star_ind = im_subrng(jx,jy,cx,cy,sx0+2,sy0+2,px0,py0,stepx,stepy,padx,pady,tilex,tiley)
         cntStar = length(star_ind)
@@ -128,10 +128,10 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
             end
             offx = padx-Δx-(jx-1)*stepx
             offy = pady-Δy-(jy-1)*stepy
-            for i in star_ind
+            # this builds in determinism, infilling from center to edge of global image
+            p = sortperm(dist_from_cen[star_ind])
+            for i in star_ind[p]
                 if in_bmaskd[cx[i],cy[i]]
-                    #this builds in some determinism on the scan direction of the x,y
-                    #processing of the image
                     if sym
                         build_cov_sym!(cov,μ,cx[i]+offx,cy[i]+offy,bimage,bism,Np,widx,widy)
                     else
@@ -140,28 +140,55 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
                     cov_stamp = cx[i]-radNp:cx[i]+radNp,cy[i]-radNp:cy[i]+radNp
                     
                     kmasked2d = in_bmaskd[cov_stamp[1],cov_stamp[2]]
-                    kstar, kcond = gen_pix_mask_trivial(kmasked2d;Np=Np)
-                    data_in = in_image_raw[cov_stamp[1],cov_stamp[2]]
-                    try
-                        stat_out = condCovEst_wdiag(cov,μ,kstar,data_in,Np=Np,export_mean=true,n_draw=ndraw,seed=seed)
-                        
-                        data_in[kstar].=stat_out[1][kstar]
-                        in_image_raw[cov_stamp[1],cov_stamp[2]].=data_in
-                        
-                        data_in = out_mean[cov_stamp[1],cov_stamp[2]]
-                        data_in[kstar].=stat_out[1][kstar]
-                        out_mean[cov_stamp[1],cov_stamp[2]].=data_in
-                        for i=1:ndraw
-                            draw_in = out_draw[cov_stamp[1],cov_stamp[2],i]
-                            draw_in[kstar].= stat_out[2][kstar,i]
-                            out_draw[cov_stamp[1],cov_stamp[2],i].=draw_in
-                        end
-                        kmasked2d[kstar].=false
-                        in_bmaskd[cov_stamp[1],cov_stamp[2]].=kmasked2d
-                        cntStarIter += 1
+                    kbad = kmasked2d[:]
+                    kgood =  .!kbad
+
+                    sampCov = cov
+                    cov_kgood_kgood = Symmetric(sampCov[kgood,kgood])
+                    cov_kgood_kbad = sampCov[kgood,kbad];
+                    cov_kbad_kbad = sampCov[kbad,kbad];
+
+                    icov_kgood_kgood = try 
+                        cholesky(cov_kgood_kgood)
                     catch
-                        println("Positive Definite Error")
+                        println("Had to use SVD for icov_kgood_kgood at (x,y) = ($(cx[i]),$(cy[i]))")
+                        svd(cov_kgood_kgood)
                     end
+                    icovkgoodkgoodCcovkgoodkbad = icov_kgood_kgood\cov_kgood_kbad
+                    predcovar = Symmetric(cov_kbad_kbad - (cov_kgood_kbad'*icovkgoodkgoodCcovkgoodkbad))
+
+                    sqrt_cov = try
+                        ipcovC = cholesky(predcovar)
+                        ipcovC.U
+                    catch
+                        println("Had to use SVD for sqrt_cov at (x,y) = ($(cx[i]),$(cy[i]))")
+                        covsvd = svd(predcovar)
+                        covsvd.V*diagm(sqrt.(covsvd.S))*covsvd.Vt
+                    end
+
+                    noise = randn(rng,ndraw,size(sqrt_cov)[1])*sqrt_cov;
+
+                    data_in = out_mean[cov_stamp[1],cov_stamp[2]]
+                    kstarpredn = (((data_in[kgood]-μ[kgood]))'*icovkgoodkgoodCcovkgoodkbad)'
+                    kstarpred = kstarpredn .+ μ[kbad];
+                    if any(isnan.(kstarpred))
+                        error("You are about to infill a NaN. Things have gone horribly wrong.")
+                    end
+                    data_in[kbad].=kstarpred
+                    out_mean[cov_stamp[1],cov_stamp[2]].=data_in
+                    
+                    for i = 1:ndraw
+                        draw_in = out_draw[cov_stamp[1],cov_stamp[2],i]
+                        kstarpredn = (((draw_in[kgood].-μ[kgood]))'*icovkgoodkgoodCcovkgoodkbad)'
+                        draw_in[kbad].= kstarpredn .+ μ[kbad] .+ noise[i,:];
+                        out_draw[cov_stamp[1],cov_stamp[2],i].=draw_in
+                        #precompute the shifted images for the covariances prevents updating the data behind the covariance with e.g. draw 1 value as in the healpix version
+                    end
+
+                    # mark infilled pixels as good now
+                    kmasked2d[kbad].=false
+                    in_bmaskd[cov_stamp[1],cov_stamp[2]].=kmasked2d
+                    cntStarIter += 1
                 end
             end
         end
@@ -170,9 +197,9 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
         flush(stdout)
     end
     if ndraw>0
-        return mod_im[1].-out_mean[1:sx0, 1:sy0], mod_im[1].-out_draw[1:sx0, 1:sy0, :]
+        return out_mean[1:sx0, 1:sy0], out_draw[1:sx0, 1:sy0, :]
     else
-        return mod_im[1].-out_mean[1:sx0, 1:sy0]
+        return out_mean[1:sx0, 1:sy0]
     end
 end
 
@@ -226,11 +253,15 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
 
     x_stars = x_locs
     y_stars = y_locs
-    (Nstars,) = size(x_stars)
 
-    mod_im = StatsBase.median(ref_im)*ones(T,(sx0, sy0))
+    # Calculate distances from image center
+    center_x = sx0 ÷ 2
+    center_y = sy0 ÷ 2
+    dist_from_cen = sqrt.((x_stars .- center_x).^2 + (y_stars .- center_y).^2)
+
+    (Nstars,) = size(x_stars)
  
-    testim = mod_im .- ref_im
+    testim = ref_im
     bimage = zeros(T,sx0,sy0)
     bimageI = zeros(Int64,sx0,sy0)
     testim2 = zeros(T,sx0,sy0)
@@ -238,7 +269,7 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
     goodpix = zeros(Bool,sx0,sy0)
 
     prelim_infill!(testim,bmaskd,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype=ftype)
-    testim .= mod_im .- ref_im #fixes current overwrite for 0 infilling
+    testim .= ref_im #fixes current overwrite for 0 infilling
 
     ## calculate the star farthest outside the edge of the image in x and y
     cx = round.(Int,x_stars)
@@ -269,10 +300,6 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
     in_sigiqr = sig_iqr(filter(.!isnan,diffim))
     
     add_sky_noise!(in_image,in_bmaskd,in_sigiqr;seed=seed)
-
-    ## iterate over all star positions and compute errorbars/debiasing corrections
-    star_stats = zeros(T,10,Nstars)
-    star_k = zeros(Int32,10,Nstars)
 
     cov = zeros(T,Np*Np,Np*Np)
     μ = zeros(T,Np*Np)
@@ -306,7 +333,9 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
             end
             offx = padx-Δx-(jx-1)*stepx
             offy = pady-Δy-(jy-1)*stepy
-            for i in star_ind
+            # this builds in determinism, infilling from center to edge of global image
+            p = sortperm(dist_from_cen[star_ind])
+            for i in star_ind[p]
                 if sym
                     build_cov_sym!(cov,μ,cx[i]+offx,cy[i]+offy,bimage,bism,Np,widx,widy)
                 else
@@ -315,29 +344,52 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
                 cov_stamp = cx[i]-radNp:cx[i]+radNp,cy[i]-radNp:cy[i]+radNp
                     
                 kmasked2d = in_bmaskd[cov_stamp[1],cov_stamp[2]]
-                kstar, kcond = gen_pix_mask_circ(kmasked2d,circmask;Np=Np)
-                data_in = in_image_raw[cov_stamp[1],cov_stamp[2]]
+                kbad, kgood = gen_pix_mask_circ(kmasked2d,circmask;Np=Np)
 
-                # try
-                    stat_out = condCovEst_wdiag(cov,μ,kstar,data_in,Np=Np,export_mean=true,n_draw=ndraw,seed=seed)
-                    
-                    data_in[kstar].=stat_out[1][kstar]
-                    in_image_raw[cov_stamp[1],cov_stamp[2]].=data_in
-                    
-                    data_in = out_mean[cov_stamp[1],cov_stamp[2]]
-                    data_in[kstar].=stat_out[1][kstar]
-                    out_mean[cov_stamp[1],cov_stamp[2]].=data_in
-                    for i=1:ndraw
-                        draw_in = out_draw[cov_stamp[1],cov_stamp[2],i]
-                        draw_in[kstar].= stat_out[2][kstar,i]
-                        out_draw[cov_stamp[1],cov_stamp[2],i].=draw_in
-                    end
-                    kmasked2d[kstar].=false
-                    in_bmaskd[cov_stamp[1],cov_stamp[2]].=kmasked2d
-                    cntStar0 += cntStar
-                # catch
-                #     println("Positive Definite Error")
-                # end
+                sampCov = cov
+                cov_kgood_kgood = Symmetric(sampCov[kgood,kgood])
+                cov_kgood_kbad = sampCov[kgood,kbad];
+                cov_kbad_kbad = sampCov[kbad,kbad];
+
+                icov_kgood_kgood = try 
+                    cholesky(cov_kgood_kgood)
+                catch
+                    println("Had to use SVD for icov_kgood_kgood at (x,y) = ($(cx[i]),$(cy[i]))")
+                    svd(cov_kgood_kgood)
+                end
+                icovkgoodkgoodCcovkgoodkbad = icov_kgood_kgood\cov_kgood_kbad
+                predcovar = Symmetric(cov_kbad_kbad - (cov_kgood_kbad'*icovkgoodkgoodCcovkgoodkbad))
+
+                sqrt_cov = try
+                    ipcovC = cholesky(predcovar)
+                    ipcovC.U
+                catch
+                    println("Had to use SVD for sqrt_cov at (x,y) = ($(cx[i]),$(cy[i]))")
+                    covsvd = svd(predcovar)
+                    covsvd.V*diagm(sqrt.(covsvd.S))*covsvd.Vt
+                end
+
+                noise = randn(rng,ndraw,size(sqrt_cov)[1])*sqrt_cov;
+
+                data_in = in_image_raw[cov_stamp[1],cov_stamp[2]]
+                kstarpredn = (((data_in[kgood]-μ[kgood]))'*icovkgoodkgoodCcovkgoodkbad)'
+                kstarpred = kstarpredn .+ μ[kbad];
+                if any(isnan.(kstarpred))
+                    error("You are about to infill a NaN. Things have gone horribly wrong.")
+                end
+                data_in[kbad].=kstarpred
+                out_mean[cov_stamp[1],cov_stamp[2]].=data_in
+                in_image_raw[cov_stamp[1],cov_stamp[2]].=data_in
+
+                for i=1:ndraw
+                    draw_in = out_draw[cov_stamp[1],cov_stamp[2],i]
+                    kstarpredn = (((draw_in[kgood].-μ[kgood]))'*icovkgoodkgoodCcovkgoodkbad)'
+                    draw_in[kbad].= kstarpredn .+ μ[kbad] .+ noise[i,:];
+                    out_draw[cov_stamp[1],cov_stamp[2],i].=draw_in
+                end
+                kmasked2d[kstar].=false
+                in_bmaskd[cov_stamp[1],cov_stamp[2]].=kmasked2d
+                cntStar0 += cntStar
             end
         end
         cntStar0 += cntStar
@@ -345,8 +397,8 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
         flush(stdout)
     end
     if ndraw>0
-        return mod_im[1].-out_mean[1:sx0, 1:sy0], mod_im[1].-out_draw[1:sx0, 1:sy0, :]
+        return out_mean[1:sx0, 1:sy0], out_draw[1:sx0, 1:sy0, :]
     else
-        return mod_im[1].-out_mean[1:sx0, 1:sy0]
+        return out_mean[1:sx0, 1:sy0]
     end
 end
