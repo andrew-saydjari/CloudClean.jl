@@ -167,7 +167,8 @@ function build_cov!(cov::Array{T,2},μ::Array{T,1},cx::Int,cy::Int,bimage::Array
                 @inbounds cov[i,j] = t
                 @inbounds cov[j,i] = t
                 if i == j
-                    @inbounds μ[i] = sqrt(μ1μ2)
+                    # the local mean itself -- `sqrt(μ1μ2)` would drop its sign
+                    @inbounds μ[i] = bimage[pr+Δr,pc+Δc]/(widx*widy)
                 end
             end
         end
@@ -222,7 +223,8 @@ function build_cov_sym!(cov::Array{T,2},μ::Array{T,1},cx::Int,cy::Int,bimage::A
                 @inbounds μ1μ2 = bimage[pr+Δr,pc+Δc]*bimage[pr+dr+Δr,pc+dc+Δc]/((widx*widy)^2)
                 @inbounds cov[i,j] = bism[pr+Δr,pc+Δc,dr+Np,dc+Np]/(widx*widy) - μ1μ2
                 if i == j
-                    @inbounds μ[i] = sqrt(μ1μ2)
+                    # the local mean itself -- `sqrt(μ1μ2)` would drop its sign
+                    @inbounds μ[i] = bimage[pr+Δr,pc+Δc]/(widx*widy)
                 end
             end
         end

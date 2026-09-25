@@ -121,6 +121,11 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
         cntStarIter = 0
         if cntStar > 0
             in_subimage .= in_image[xrng,yrng]
+            # Subtract the tile median before forming pixel products. Covariance is
+            # E[xy] - E[x]E[y], which cancels catastrophically (in Float32 especially) when
+            # the background is large against the fluctuations.  Add it back to `μ` below.
+            offset = StatsBase.median(in_subimage)
+            in_subimage .-= offset
             if sym
                 cov_avg_sym!(bimage, ism, bism, in_subimage, widx=widx, widy=widy,Np=Np)
             else
@@ -137,6 +142,7 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
                     else
                         build_cov!(cov,μ,cx[i]+offx,cy[i]+offy,bimage,bism,Np,widx,widy)
                     end
+                    μ .+= offset
                     cov_stamp = cx[i]-radNp:cx[i]+radNp,cy[i]-radNp:cy[i]+radNp
                     
                     kmasked2d = in_bmaskd[cov_stamp[1],cov_stamp[2]]
@@ -327,6 +333,11 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
         cntStar = length(star_ind)
         if cntStar > 0
             in_subimage .= in_image[xrng,yrng]
+            # Subtract the tile median before forming pixel products. Covariance is
+            # E[xy] - E[x]E[y], which cancels catastrophically (in Float32 especially) when
+            # the background is large against the fluctuations.  Add it back to `μ` below.
+            offset = StatsBase.median(in_subimage)
+            in_subimage .-= offset
             if sym
                 cov_avg_sym!(bimage, ism, bism, in_subimage, widx=widx, widy=widy,Np=Np)
             else
@@ -342,6 +353,7 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
                 else
                     build_cov!(cov,μ,cx[i]+offx,cy[i]+offy,bimage,bism,Np,widx,widy)
                 end
+                μ .+= offset
                 cov_stamp = cx[i]-radNp:cx[i]+radNp,cy[i]-radNp:cy[i]+radNp
                     
                 kmasked2d = in_bmaskd[cov_stamp[1],cov_stamp[2]]
