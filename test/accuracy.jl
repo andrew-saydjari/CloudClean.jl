@@ -28,4 +28,13 @@ using Random
     out32 = proc_discrete([40], [40], Float32.(img), copy(mask); Np = 9, widx = 25, ftype = 32)
     out64 = proc_discrete([40], [40], copy(img), copy(mask); Np = 9, widx = 25, ftype = 64)
     @test maximum(abs.(out32[mask] .- out64[mask])) < 0.05
+
+    # The caller's image is left untouched
+    img32 = Float32.(img)
+    for f in (im -> proc_discrete([40], [40], im, copy(mask); Np = 9, widx = 25),
+              im -> proc_continuous(im, copy(mask); Np = 9, widx = 25))
+        im = copy(img32)
+        f(im)
+        @test im == img32
+    end
 end

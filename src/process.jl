@@ -42,7 +42,7 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
     end
 
     # renaming to match conventions
-    ref_im = convert(Array{T}, raw_image)
+    ref_im = Array{T}(raw_image)  # always a copy, since prelim_infill! zeros masked pixels in place
     bmaskd = mask_image
     (sx0, sy0) = size(ref_im)
     
@@ -253,7 +253,7 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
     end
 
     # renaming to match conventions
-    ref_im = raw_image
+    ref_im = Array{T}(raw_image)  # always a copy, since prelim_infill! zeros masked pixels in place
     bmaskd = mask_image
     (sx0, sy0) = size(ref_im)
 
