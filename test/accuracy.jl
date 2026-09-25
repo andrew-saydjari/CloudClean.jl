@@ -1,4 +1,5 @@
 using Random
+using StatsBase: std
 
 @testset "accuracy.jl" begin
     # `μ` is the local mean, sign included: a sky-subtracted image has negative ones,
@@ -37,4 +38,16 @@ using Random
         f(im)
         @test im == img32
     end
+
+    # On pure white noise (σ = 1) with 30% of pixels masked, draws for the masked pixels
+    # must scatter about their mean by σ.  That holds only if the noise injected into
+    # masked pixels for covariance training matches the image's own white-noise level,
+    # i.e. is estimated from unmasked adjacent pairs and scaled by 1/√2.
+    rng = MersenneTwister(1)
+    wn = 100 .+ randn(rng, 60, 60)
+    wmask = rand(rng, 60, 60) .< 0.3
+    wmask[[1:7; 54:60], :] .= false
+    wmask[:, [1:7; 54:60]] .= false
+    μw, dw = proc_continuous(wn, wmask; Np = 7, widx = 21, ndraw = 2, ftype = 64)
+    @test 0.9 < std([dw[:, :, 1][wmask] .- μw[wmask]; dw[:, :, 2][wmask] .- μw[wmask]]) < 1.1
 end

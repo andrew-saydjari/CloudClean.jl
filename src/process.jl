@@ -65,7 +65,6 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
     goodpix = zeros(Bool,sx0,sy0)
 
     prelim_infill!(testim,bmaskd,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype=ftype)
-    testim .= ref_im #fixes current overwrite for 0 infilling
 
     ## calculate the star farthest outside the edge of the image in x and y
     cx = round.(Int,x_stars)
@@ -92,8 +91,12 @@ function proc_continuous(raw_image,mask_image;Np=33,widx=129,widy=widx,tilex=1,t
         out_draw[in_bmaskd,i].=NaN
     end
     
+    # White-noise level for the masked pixels, from differences of adjacent pixel pairs that
+    # are both unmasked (prelim_infill! has zeroed the masked ones).  A difference of two
+    # independent draws has standard deviation √2 σ, so divide out the √2 to get σ.
+    goodpair = .!(view(bmaskd,1:sx0-1,:) .| view(bmaskd,2:sx0,:))
     diffim = view(ref_im,1:sx0-1,:).-view(ref_im,2:sx0,:)
-    in_sigiqr = sig_iqr(filter(.!isnan,diffim))
+    in_sigiqr = sig_iqr(filter(!isnan,diffim[goodpair]))/sqrt(2)
     
     add_sky_noise!(in_image,in_bmaskd,in_sigiqr;seed=seed)
 
@@ -275,7 +278,6 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
     goodpix = zeros(Bool,sx0,sy0)
 
     prelim_infill!(testim,bmaskd,bimage,bimageI,testim2,bmaskim2,goodpix;widx=19,widy=19,ftype=ftype)
-    testim .= ref_im #fixes current overwrite for 0 infilling
 
     ## calculate the star farthest outside the edge of the image in x and y
     cx = round.(Int,x_stars)
@@ -302,8 +304,12 @@ function proc_discrete(x_locs,y_locs,raw_image,mask_image;Np=33,widx=129,widy=wi
         out_draw[in_bmaskd,i].=NaN
     end
 
+    # White-noise level for the masked pixels, from differences of adjacent pixel pairs that
+    # are both unmasked (prelim_infill! has zeroed the masked ones).  A difference of two
+    # independent draws has standard deviation √2 σ, so divide out the √2 to get σ.
+    goodpair = .!(view(bmaskd,1:sx0-1,:) .| view(bmaskd,2:sx0,:))
     diffim = view(ref_im,1:sx0-1,:).-view(ref_im,2:sx0,:)
-    in_sigiqr = sig_iqr(filter(.!isnan,diffim))
+    in_sigiqr = sig_iqr(filter(!isnan,diffim[goodpair]))/sqrt(2)
     
     add_sky_noise!(in_image,in_bmaskd,in_sigiqr;seed=seed)
 
